@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>延長設定</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-body">
+  <div class="app-container">
+    <header class="app-header">
+      <button class="btn back" onclick="location.href='index.html'">← 戻る</button>
+      <h1>設定</h1>
+    </header>
+
+    <main class="app-main scroll">
+      <!-- 現在の料金 -->
+      <div class="card">
+        <label class="field-label" for="currentChargeInput">現在の料金</label>
+        <div class="field-row">
+          <input id="currentChargeInput" type="number" inputmode="numeric" class="field-input right">
+          <button id="currentChargeReset" class="btn secondary">リセット</button>
+        </div>
+      </div>
+
+      <!-- 人数・指名 -->
+      <div class="card">
+        <div class="counter-row">
+          <div class="counter-label">お客様（男性）</div>
+          <div class="counter-controls">
+            <button id="customerDec" class="btn small">-</button>
+            <span id="customerCount" class="counter-value">0</span>
+            <button id="customerInc" class="btn small">+</button>
+          </div>
+        </div>
+
+        <div class="counter-row">
+          <div class="counter-label">指名</div>
+          <div class="counter-controls">
+            <button id="nominationDec" class="btn small">-</button>
+            <span id="nominationCount" class="counter-value">0</span>
+            <button id="nominationInc" class="btn small">+</button>
+          </div>
+        </div>
+
+        <div class="counter-row">
+          <div class="counter-label">お客様（女性）</div>
+          <div class="counter-controls">
+            <button id="femaleDec" class="btn small female">-</button>
+            <span id="femaleCustomerCount" class="counter-value">0</span>
+            <button id="femaleInc" class="btn small female">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 割引 -->
+      <div class="card">
+        <div id="discountFields"></div>
+
+        <div class="field-row">
+          <button id="discountReset" class="btn secondary full">
+            割引リセット
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="btn primary" onclick="location.href='index.html'">
+        計算画面へ
+      </button>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+    document.addEventListener('DOMContentLoaded', initSettingsScreen);
+  </script>
+</body>
+</html>

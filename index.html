@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>延長料金チェック</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="app-body">
+  <div class="app-container">
+    <header class="app-header">
+      <h1>延長料金チェック</h1>
+    </header>
+
+    <main class="app-main">
+      <div class="card">
+        <div class="card-label">現在の料金</div>
+        <div id="currentChargeDisplay" class="card-amount">¥0</div>
+      </div>
+
+      <div id="extensionCards"></div>
+    </main>
+
+    <footer class="app-footer">
+      <button class="btn primary" onclick="location.href='settings.html'">
+        設定画面へ
+      </button>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+    document.addEventListener('DOMContentLoaded', initCalculatorScreen);
+  </script>
+</body>
+</html>
