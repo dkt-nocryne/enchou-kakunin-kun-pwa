@@ -209,3 +209,32 @@ body.app-body {
   justify-content:center;
   min-height:0;  /* ← 120pxよりこっちが画面フィットに強い */
 }
+
+/* ===== 延長カードサイズ強調 ===== */
+
+/* メインのカード高さ分配 */
+#extensionCards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 通常カード(現在料金) */
+#extensionCards .card:first-child {
+  flex: 1; /* 標準 */
+}
+
+/* 延長カードは強調して高さUP */
+#extensionCards .card:not(:first-child) {
+  flex: 1.3; /* ← ここが強調倍率、1.5にすると更に目立つ */
+}
+
+/* 必要なら文字も大きくして視認性UP */
+#extensionCards .card:not(:first-child) .card-amount {
+  font-size: 48px; /* 好きに変更 例50〜70 */
+}
+
+#extensionCards .card:not(:first-child) .card-label {
+  font-size: 20px;
+  font-weight: 600;
+}
