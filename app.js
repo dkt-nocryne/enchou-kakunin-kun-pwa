@@ -353,32 +353,21 @@ function createDiscountField(labelText, inputId, storageKey, initialValue) {
   return wrapper;
 }
 
-// ================================
-// SW登録 & 即時更新処理（完全版）
-// ================================
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js').then(reg => {
-
-    // 既にwaitingがいたら即更新
+    // SW更新が検出されたら即反映
     if (reg.waiting) {
       reg.waiting.postMessage('skipWaiting');
-      return;
     }
 
-    // 新しいSWがinstallされた時
     reg.addEventListener('updatefound', () => {
       const newSW = reg.installing;
       newSW.addEventListener('statechange', () => {
         if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
           newSW.postMessage('skipWaiting');
+          location.reload(); // ←即リロードして最新版になる
         }
       });
     });
-
-    // 新SWが有効化 → 自動リロード
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      location.reload();
-    });
-
   });
 }
