@@ -56,6 +56,35 @@ function saveSettings(settings) {
   localStorage.setItem(LS_KEYS.SETTINGS, JSON.stringify(settings));
 }
 
+// ここに enableAutoComma() 関数を貼る
+function enableAutoComma(inputEl, storageKey) {
+  inputEl.addEventListener('input', (e) => {
+    const input = e.target;
+
+    const selectionStart = input.selectionStart;
+    const raw = input.value.replace(/,/g, '');       // カンマ除去
+    const numeric = raw.replace(/[^0-9]/g, '');      // 数字以外除去
+
+    if (numeric === '') {
+      input.value = '';
+      localStorage.setItem(storageKey, "0");
+      return;
+    }
+
+    const formatted = Number(numeric).toLocaleString();
+    input.value = formatted;
+    localStorage.setItem(storageKey, numeric);
+
+    const diff = formatted.length - raw.length;
+    input.setSelectionRange(selectionStart + diff, selectionStart + diff);
+  });
+
+  inputEl.addEventListener("blur", (e)=>{
+    const raw = localStorage.getItem(storageKey) || "0";
+    e.target.value = Number(raw).toLocaleString();
+  });
+}
+
 function loadInt(key, defaultValue) {
   const raw = localStorage.getItem(key);
   if (!raw) return defaultValue;
@@ -132,10 +161,14 @@ function initCalculatorScreen() {
   const state = loadState();
 
   // 現在の料金
-  const currentChargeDisplay = document.getElementById('currentChargeDisplay');
-  if (currentChargeDisplay) {
-    currentChargeDisplay.textContent = formatYen(state.currentCharge);
-  }
+const currentChargeInput = document.getElementById('currentChargeInput');
+if(currentChargeInput){
+  currentChargeInput.value = state.currentCharge ? Number(state.currentCharge).toLocaleString() : "";
+  enableAutoComma(currentChargeInput, LS_KEYS.CURRENT_CHARGE);
+  enableAutoComma(document.getElementById('discount1Input'), LS_KEYS.DISCOUNT1);
+  enableAutoComma(document.getElementById('discount2Input'), LS_KEYS.DISCOUNT2);
+  enableAutoComma(document.getElementById('discount3Input'), LS_KEYS.DISCOUNT3);
+}
 
   // 延長カード
   const container = document.getElementById('extensionCards');
