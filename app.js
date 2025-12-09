@@ -195,39 +195,37 @@ function createExtensionCard(label, amount, emphasized) {
   return card;
 }
 
-// ================================
-// 設定画面初期化（settings.html）
-// ================================
-function initSettingsScreen() {
-  const settings = loadSettings();
-  const state = loadState();
+// 現在の料金
+const currentChargeInput = document.getElementById('currentChargeInput');
+const currentChargeReset = document.getElementById('currentChargeReset');
 
-  // 現在の料金
-  const currentChargeInput = document.getElementById('currentChargeInput');
-  const currentChargeReset = document.getElementById('currentChargeReset');
-  if (currentChargeInput) {
-    currentChargeInput.value = state.currentCharge ? Number(state.currentCharge).toLocaleString() : '';
+if (currentChargeInput) {
+  // 画面描画時はカンマ付き表示
+  currentChargeInput.value = state.currentCharge ? Number(state.currentCharge).toLocaleString() : '';
 
-    // 入力時に3桁区切りへ自動整形
-    currentChargeInput.addEventListener('input', e => {
-      let raw = e.target.value.replace(/[^0-9]/g, '');   // 数字以外除去
-      if (raw === '') {
-        saveString(LS_KEYS.CURRENT_CHARGE, '0');
-        e.target.value = '';
-        return;
-      }
-      saveString(LS_KEYS.CURRENT_CHARGE, raw);          // 保存はコンマ無し
-      e.target.value = Number(raw).toLocaleString();    // 表示はコンマ付き
-    });
-  }
+  // 入力中はカンマ無しで生数字を扱う
+  currentChargeInput.addEventListener('input', e => {
+    let raw = e.target.value.replace(/[^0-9]/g,'');
+    if (raw === '') raw = '0';
+    saveString(LS_KEYS.CURRENT_CHARGE, raw);
+    e.target.value = raw;  // 入力時はカンマなし
+  });
 
-  if (currentChargeReset) {
-    currentChargeReset.addEventListener('click', () => {
-      currentChargeInput.value = '';
-      saveString(LS_KEYS.CURRENT_CHARGE, '0');
-    });
-  }
+  // フォーカスを離れたときにカンマ付けて見栄え整える
+  currentChargeInput.addEventListener('blur', e => {
+    const raw = localStorage.getItem(LS_KEYS.CURRENT_CHARGE) || '0';
+    e.target.value = Number(raw).toLocaleString();
+  });
 }
+
+// リセットボタン
+if (currentChargeReset) {
+  currentChargeReset.addEventListener('click', () => {
+    currentChargeInput.value = '';
+    saveString(LS_KEYS.CURRENT_CHARGE, '0');
+  });
+}
+
 
   // カウンター類
   initCounter(
