@@ -255,3 +255,7 @@ body.app-body {
 .settings-page .btn.full {
   margin-top: 6px; 
 }
+
+.settings-page.scroll {
+  overflow-y: hidden;
+}
