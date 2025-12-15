@@ -367,3 +367,38 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+function persistSettingsFromForm() {
+  const s = loadSettings();
+
+  const getNum = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const raw = String(el.value ?? '').replace(/[^0-9]/g, '');
+    const v = parseInt(raw, 10);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const getSel = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const v = parseInt(String(el.value ?? ''), 10);
+    return isNaN(v) ? null : v;
+  };
+
+  const cc = getSel('cardCount');
+  if (cc != null) s.cardCount = Math.min(3, Math.max(1, cc));
+
+  [
+    'duration1','duration2','duration3',
+    'price1','price2','price3',
+    'femalePrice1','femalePrice2','femalePrice3',
+    'mainNominationPrice1','mainNominationPrice2','mainNominationPrice3',
+    'inhouseNominationPrice1','inhouseNominationPrice2','inhouseNominationPrice3'
+  ].forEach(id => {
+    const v = getNum(id);
+    if (v != null) s[id] = Math.max(0, v);
+  });
+
+  saveSettings(s);
+}

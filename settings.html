@@ -97,9 +97,14 @@
     </main>
   </div>
 
-  <script src="app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', initSettingsEditorScreen);
-  </script>
+<script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', initSettingsEditorScreen);
+
+  window.addEventListener('pagehide', () => {
+    if (typeof persistSettingsFromForm === 'function') persistSettingsFromForm();
+  });
+</script>
+
 </body>
 </html>

@@ -86,9 +86,15 @@
     </main>
   </div>
 
-  <script src="app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', initApp);
-  </script>
+<script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', initApp);
+
+  // 端末の戻る（bfcache復元）でも必ず最新状態に反映
+  window.addEventListener('pageshow', () => {
+    if (typeof updateCalculator === 'function') updateCalculator();
+  });
+</script>
+
 </body>
 </html>
