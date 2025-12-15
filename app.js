@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS = {
   // 女性料金
   femalePrice1: 1800,
   femalePrice2: 3600,
-  femalePrice3: 7200,
+  femalePrice3: 5400,
 
   // 本指名料金
   mainNominationPrice1: 2400,
@@ -24,9 +24,9 @@ const DEFAULT_SETTINGS = {
   mainNominationPrice3: 4800,
 
   // 場内指名料金（必要に応じて調整）
-  inhouseNominationPrice1: 1200,
-  inhouseNominationPrice2: 1200,
-  inhouseNominationPrice3: 2400
+  inhouseNominationPrice1: 2400,
+  inhouseNominationPrice2: 2400,
+  inhouseNominationPrice3: 4800
 };
 
 // ================================
