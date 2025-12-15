@@ -7,35 +7,88 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#000000">
   <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; }
+  </style>
 </head>
+
 <body class="app-body">
   <div class="app-container">
     <header class="app-header">
       <h1>延長確認</h1>
     </header>
 
-    <main class="app-main">
+    <main class="app-main scroll">
+
+      <!-- 表示エリア -->
       <div class="card">
         <div class="card-label">現在の料金</div>
         <div id="currentChargeDisplay" class="card-amount">¥0</div>
       </div>
 
       <div id="extensionCards"></div>
-    </main>
 
-    <footer class="app-footer">
-      <button class="btn primary" onclick="location.href='settings.html'">
-        設定
-      </button>
-    </footer>
+      <!-- 余白（任意） -->
+      <div class="spacer"></div>
+
+      <!-- 入力エリア -->
+      <div class="card">
+        <label class="field-label" for="currentChargeInput">現在の料金</label>
+        <div class="field-row">
+          <input id="currentChargeInput" type="number" inputmode="numeric" class="field-input right">
+          <button id="currentChargeReset" class="btn secondary" type="button">リセット</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="counter-row">
+          <div class="counter-label">お客様（男性）</div>
+          <div class="counter-controls">
+            <button id="customerDec" class="btn small" type="button">-</button>
+            <span id="customerCount" class="counter-value">0</span>
+            <button id="customerInc" class="btn small" type="button">+</button>
+          </div>
+        </div>
+
+        <div class="counter-row">
+          <div class="counter-label">本指名</div>
+          <div class="counter-controls">
+            <button id="mainNominationDec" class="btn small" type="button">-</button>
+            <span id="mainNominationCount" class="counter-value">0</span>
+            <button id="mainNominationInc" class="btn small" type="button">+</button>
+          </div>
+        </div>
+
+        <div class="counter-row">
+          <div class="counter-label">場内指名</div>
+          <div class="counter-controls">
+            <button id="inhouseNominationDec" class="btn small" type="button">-</button>
+            <span id="inhouseNominationCount" class="counter-value">0</span>
+            <button id="inhouseNominationInc" class="btn small" type="button">+</button>
+          </div>
+        </div>
+
+        <div class="counter-row">
+          <div class="counter-label">お客様（女性）</div>
+          <div class="counter-controls">
+            <button id="femaleDec" class="btn small female" type="button">-</button>
+            <span id="femaleCustomerCount" class="counter-value">0</span>
+            <button id="femaleInc" class="btn small female" type="button">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <!-- 料金設定画面へ -->
+      <button class="btn primary full" type="button" onclick="location.href='settings.html'">料金設定</button>
+
+    </main>
   </div>
 
   <script src="app.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-    document.addEventListener('DOMContentLoaded', initCalculatorScreen);
+    document.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>

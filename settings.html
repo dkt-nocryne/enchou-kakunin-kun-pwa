@@ -1,93 +1,105 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>延長設定</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-<link rel="stylesheet" href="style.css">
-
-<style>
-/* 文字化け対策：日本語フォント強制 */
-body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; }
-</style>
+  <meta charset="UTF-8">
+  <title>料金設定</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="app-body settings-page">
-<div class="app-container">
+<body class="app-body">
+  <div class="app-container">
+    <header class="app-header">
+      <button class="btn back" type="button" onclick="location.href='index.html'">← 戻る</button>
+      <h1>料金設定</h1>
+    </header>
 
-<header class="app-header">
-  <button class="btn back" onclick="location.href='index.html'">← 戻る</button>
-  <h1>設定</h1>
-</header>
+    <main class="app-main scroll">
 
-<main class="app-main scroll">
+      <div class="card">
+        <label class="field-label" for="cardCount">延長パターン数（1〜3）</label>
+        <select id="cardCount" class="field-input">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
 
-  <!-- 現在料金 -->
-  <div class="card">
-    <label class="field-label" for="currentChargeInput">現在の料金</label>
-    <div class="field-row">
-      <input id="currentChargeInput" type="number" inputmode="numeric" class="field-input right">
-      <button id="currentChargeReset" class="btn secondary">リセット</button>
-    </div>
+      <div class="card">
+        <div class="card-label">延長時間（分）</div>
+
+        <label class="field-label" for="duration1">パターン1</label>
+        <input id="duration1" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="duration2">パターン2</label>
+        <input id="duration2" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="duration3">パターン3</label>
+        <input id="duration3" type="number" inputmode="numeric" class="field-input right">
+      </div>
+
+      <div class="card">
+        <div class="card-label">男性料金</div>
+
+        <label class="field-label" for="price1">パターン1</label>
+        <input id="price1" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="price2">パターン2</label>
+        <input id="price2" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="price3">パターン3</label>
+        <input id="price3" type="number" inputmode="numeric" class="field-input right">
+      </div>
+
+      <div class="card">
+        <div class="card-label">女性料金</div>
+
+        <label class="field-label" for="femalePrice1">パターン1</label>
+        <input id="femalePrice1" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="femalePrice2">パターン2</label>
+        <input id="femalePrice2" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="femalePrice3">パターン3</label>
+        <input id="femalePrice3" type="number" inputmode="numeric" class="field-input right">
+      </div>
+
+      <div class="card">
+        <div class="card-label">本指名料金</div>
+
+        <label class="field-label" for="mainNominationPrice1">パターン1</label>
+        <input id="mainNominationPrice1" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="mainNominationPrice2">パターン2</label>
+        <input id="mainNominationPrice2" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="mainNominationPrice3">パターン3</label>
+        <input id="mainNominationPrice3" type="number" inputmode="numeric" class="field-input right">
+      </div>
+
+      <div class="card">
+        <div class="card-label">場内指名料金</div>
+
+        <label class="field-label" for="inhouseNominationPrice1">パターン1</label>
+        <input id="inhouseNominationPrice1" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="inhouseNominationPrice2">パターン2</label>
+        <input id="inhouseNominationPrice2" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="inhouseNominationPrice3">パターン3</label>
+        <input id="inhouseNominationPrice3" type="number" inputmode="numeric" class="field-input right">
+      </div>
+
+      <button class="btn primary full" type="button" onclick="location.href='index.html'">計算画面へ</button>
+
+    </main>
   </div>
 
-  <!-- 人数カウンタ -->
-  <div class="card">
-    <div class="counter-row">
-      <div class="counter-label">お客様（男性）</div>
-      <div class="counter-controls">
-        <button id="customerDec" class="btn small">-</button>
-        <span id="customerCount" class="counter-value">0</span>
-        <button id="customerInc" class="btn small">+</button>
-      </div>
-    </div>
-
-    <div class="counter-row">
-      <div class="counter-label">指名</div>
-      <div class="counter-controls">
-        <button id="nominationDec" class="btn small">-</button>
-        <span id="nominationCount" class="counter-value">0</span>
-        <button id="nominationInc" class="btn small">+</button>
-      </div>
-    </div>
-
-    <div class="counter-row">
-      <div class="counter-label">お客様（女性）</div>
-      <div class="counter-controls">
-        <button id="femaleDec" class="btn small female">-</button>
-        <span id="femaleCustomerCount" class="counter-value">0</span>
-        <button id="femaleInc" class="btn small female">+</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 割引 -->
-  <div class="card">
-    <div id="discountFields"></div>
-
-    <div class="field-row">
-      <button id="discountReset" class="btn secondary full">割引リセット</button>
-    </div>
-  </div>
-
-  <!-- 割引カードの下に設置 -->
-  <button class="btn primary full" onclick="location.href='index.html'">計算画面へ</button>
-
-</main>
-
-</main>
-
-</div>
-
-<script src="app.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
-document.addEventListener('DOMContentLoaded', initSettingsScreen);
-</script>
-
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', initSettingsEditorScreen);
+  </script>
 </body>
 </html>
