@@ -28,11 +28,14 @@ const DEFAULT_SETTINGS = {
   inhouseNominationPrice2: 2400,
   inhouseNominationPrice3: 4800,
 
-  // ★ ラベル（1セットだけ：計算画面の±行＋設定画面の見出しにも流用）
+  // 表示ラベル（1セット）
   labelMaleCustomer: 'お客様（男性）',
   labelMainNomination: '本指名',
   labelInhouseNomination: '場内指名',
-  labelFemaleCustomer: 'お客様（女性）'
+  labelFemaleCustomer: 'お客様（女性）',
+
+  // ★追加：カード手数料（%）
+  cardFeePercent: 0
 };
 
 // ================================
@@ -48,7 +51,10 @@ const LS_KEYS = {
 
   NOMINATION_COUNT_OLD: 'bix_nominationCount',
 
-  SETTINGS: 'bix_appSettings'
+  SETTINGS: 'bix_appSettings',
+
+  // ★追加：カード手数料 ON/OFF（画面状態）
+  CARD_FEE_ENABLED: 'bix_cardFeeEnabled'
 };
 
 // ================================
@@ -73,6 +79,9 @@ function loadSettings() {
       if (merged.mainNominationPrice3 == null && obj.nominationPrice3 != null) merged.mainNominationPrice3 = obj.nominationPrice3;
     }
 
+    // cardFeePercent が文字列で入っていても安全に
+    merged.cardFeePercent = clampNumber(merged.cardFeePercent, 0, 100);
+
     return merged;
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -94,6 +103,16 @@ function saveString(key, value) {
   localStorage.setItem(key, value);
 }
 
+function loadBool(key, def) {
+  const raw = localStorage.getItem(key);
+  if (raw == null) return def;
+  return raw === '1' || raw === 'true';
+}
+
+function saveBool(key, value) {
+  localStorage.setItem(key, value ? '1' : '0');
+}
+
 function formatYen(value) {
   return '¥' + Number(value).toLocaleString('ja-JP');
 }
@@ -104,8 +123,30 @@ function clampInt(v, min, max) {
   return Math.min(max, Math.max(min, n));
 }
 
+function clampNumber(v, min, max) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, n));
+}
+
 // ================================
-// 計算ロジック
+// カード手数料計算
+// - 例に合わせ、100円単位で切り上げ（15360→15400）
+// - 10円単位にしたい場合は ROUND_UNIT を 10 に変更
+// ================================
+const ROUND_UNIT = 100;
+
+function applyCardFee(amount, percent) {
+  const p = clampNumber(percent, 0, 100);
+  if (p <= 0) return amount;
+
+  const raw = amount * (1 + p / 100);
+  const rounded = Math.ceil(raw / ROUND_UNIT) * ROUND_UNIT;
+  return Math.trunc(rounded);
+}
+
+// ================================
+// 計算ロジック（ベース）
 // ================================
 function calcTotals(settings, state) {
   const {
@@ -161,15 +202,15 @@ function loadState() {
     customerCount: loadInt(LS_KEYS.CUSTOMER_COUNT, 1),
     femaleCustomerCount: loadInt(LS_KEYS.FEMALE_CUSTOMER_COUNT, 0),
     mainNominationCount: loadInt(LS_KEYS.MAIN_NOMINATION_COUNT, 0),
-    inhouseNominationCount: loadInt(LS_KEYS.INHOUSE_NOMINATION_COUNT, 0)
+    inhouseNominationCount: loadInt(LS_KEYS.INHOUSE_NOMINATION_COUNT, 0),
+
+    // ★追加：カード手数料ON/OFF（画面状態）
+    cardFeeEnabled: loadBool(LS_KEYS.CARD_FEE_ENABLED, false)
   };
 }
 
 // ================================
 // UI：ラベル反映（index.html / settings.html 共通）
-// - 計算画面の±行
-// - 設定画面の料金カード見出し（title...）
-//   → 同じ4ラベルを流用する（1セット統一）
 // ================================
 function applyUiLabels(settings) {
   const setText = (id, text) => {
@@ -185,7 +226,7 @@ function applyUiLabels(settings) {
   setText('labelInhouseNomination', settings.labelInhouseNomination);
   setText('labelFemaleCustomer', settings.labelFemaleCustomer);
 
-  // settings.html の 見出し（span id: title...）
+  // settings.html の 見出し（同じラベルを流用）
   setText('titleMalePriceTitle', settings.labelMaleCustomer);
   setText('titleMainNominationTitle', settings.labelMainNomination);
   setText('titleInhouseNominationTitle', settings.labelInhouseNomination);
@@ -242,13 +283,25 @@ function initApp() {
 function updateCalculator() {
   const settings = loadSettings();
   applyUiLabels(settings);
+
   const state = loadState();
 
+  // indexヘッダーのトグル反映（存在する場合のみ）
+  const toggle = safeGetEl('cardFeeToggle');
+  if (toggle) toggle.checked = !!state.cardFeeEnabled;
+
+  const feeOn = !!state.cardFeeEnabled;
+  const feePercent = settings.cardFeePercent;
+
+  // 現在の料金表示
   const currentChargeDisplay = safeGetEl('currentChargeDisplay');
   if (currentChargeDisplay) {
-    currentChargeDisplay.textContent = formatYen(state.currentCharge);
+    const base = state.currentCharge;
+    const shown = feeOn ? applyCardFee(base, feePercent) : base;
+    currentChargeDisplay.textContent = formatYen(shown);
   }
 
+  // 延長カード
   const container = safeGetEl('extensionCards');
   if (!container) return;
 
@@ -256,14 +309,18 @@ function updateCalculator() {
 
   const totals = calcTotals(settings, state);
 
+  const t1 = feeOn ? applyCardFee(totals.total1, feePercent) : totals.total1;
+  const t2 = feeOn ? applyCardFee(totals.total2, feePercent) : totals.total2;
+  const t3 = feeOn ? applyCardFee(totals.total3, feePercent) : totals.total3;
+
   if (settings.cardCount >= 1) {
-    container.appendChild(createExtensionCard(`${settings.duration1}分延長 合計`, totals.total1, true));
+    container.appendChild(createExtensionCard(`${settings.duration1}分延長 合計`, t1, true));
   }
   if (settings.cardCount >= 2) {
-    container.appendChild(createExtensionCard(`${settings.duration2}分延長 合計`, totals.total2, true));
+    container.appendChild(createExtensionCard(`${settings.duration2}分延長 合計`, t2, true));
   }
   if (settings.cardCount >= 3) {
-    container.appendChild(createExtensionCard(`${settings.duration3}分延長 合計`, totals.total3, true));
+    container.appendChild(createExtensionCard(`${settings.duration3}分延長 合計`, t3, true));
   }
 
   applyCardPaddingByCount(settings);
@@ -274,6 +331,16 @@ function updateCalculator() {
 // ================================
 function initInputBindings() {
   const state = loadState();
+
+  // ★追加：カード手数料トグル
+  const cardFeeToggle = safeGetEl('cardFeeToggle');
+  if (cardFeeToggle) {
+    cardFeeToggle.checked = !!state.cardFeeEnabled;
+    cardFeeToggle.addEventListener('change', () => {
+      saveBool(LS_KEYS.CARD_FEE_ENABLED, !!cardFeeToggle.checked);
+      updateCalculator();
+    });
+  }
 
   // 現在の料金
   const currentChargeInput = safeGetEl('currentChargeInput');
@@ -328,15 +395,12 @@ function initCounter(labelId, incId, decId, storageKey, initialValue, minValue) 
 // ================================
 // 設定編集画面（settings.html）
 // ================================
-
-// 共通：フォームへ値をセット
 function setVal(id, value) {
   const el = safeGetEl(id);
   if (!el) return;
   el.value = String(value ?? '');
 }
 
-// 共通：数値入力を即保存（input/change）
 function bindInt(id, onChange) {
   const el = safeGetEl(id);
   if (!el) return;
@@ -351,7 +415,6 @@ function bindInt(id, onChange) {
   el.addEventListener('change', handler);
 }
 
-// 共通：テキスト入力を即保存（input/change）
 function bindText(id, onChange) {
   const el = safeGetEl(id);
   if (!el) return;
@@ -361,11 +424,10 @@ function bindText(id, onChange) {
   el.addEventListener('change', handler);
 }
 
-// settings.html 初期化
 function initSettingsEditorScreen() {
   const settings = loadSettings();
 
-  // cardCount（select）
+  // cardCount
   setVal('cardCount', settings.cardCount);
   const cardCountEl = safeGetEl('cardCount');
   if (cardCountEl) {
@@ -375,11 +437,21 @@ function initSettingsEditorScreen() {
       s.cardCount = clampInt(isNaN(v) ? 1 : v, 1, 3);
       saveSettings(s);
 
-      // settings画面で即反映
       applyUiLabels(s);
       applyCardPaddingByCount(s);
     });
   }
+
+  // ★カード手数料（%）
+  setVal('cardFeePercent', settings.cardFeePercent);
+  bindInt('cardFeePercent', v => {
+    const s = loadSettings();
+    s.cardFeePercent = clampInt(v, 0, 100);
+    saveSettings(s);
+
+    // settings画面の見出し等も即反映（計算画面側は戻った時に反映）
+    applyUiLabels(s);
+  });
 
   // 数値項目
   [
@@ -404,7 +476,7 @@ function initSettingsEditorScreen() {
     });
   });
 
-  // ラベル入力（1セットのみ）
+  // ラベル入力（1セット）
   [
     'labelMaleCustomer',
     'labelMainNomination',
@@ -422,8 +494,6 @@ function initSettingsEditorScreen() {
       const s = loadSettings();
       s[id] = String(v ?? '').trim();
       saveSettings(s);
-
-      // settings画面内の見出しも即反映
       applyUiLabels(s);
     });
   });

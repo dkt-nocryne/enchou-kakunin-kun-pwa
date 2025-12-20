@@ -27,20 +27,26 @@
         </select>
       </div>
 
-      <!-- 表示ラベル（これ1セットだけ） -->
+      <!-- ★追加：カード手数料（%） -->
+      <div class="card">
+        <label class="field-label" for="cardFeePercent">カード手数料（%）</label>
+        <input id="cardFeePercent" type="number" inputmode="numeric" class="field-input right" placeholder="例：20">
+      </div>
+
+      <!-- 表示ラベル（1セットだけ） -->
       <div class="card">
         <div class="card-label">表示ラベル</div>
 
-        <label class="field-label" for="labelMaleCustomer">ラベル1</label>
+        <label class="field-label" for="labelMaleCustomer">男性（カウンター／見出し）</label>
         <input id="labelMaleCustomer" type="text" class="field-input">
 
-        <label class="field-label" for="labelMainNomination">ラベル2</label>
+        <label class="field-label" for="labelMainNomination">本指名（カウンター／見出し）</label>
         <input id="labelMainNomination" type="text" class="field-input">
 
-        <label class="field-label" for="labelInhouseNomination">ラベル3</label>
+        <label class="field-label" for="labelInhouseNomination">場内指名（カウンター／見出し）</label>
         <input id="labelInhouseNomination" type="text" class="field-input">
 
-        <label class="field-label" for="labelFemaleCustomer">ラベル4</label>
+        <label class="field-label" for="labelFemaleCustomer">女性（カウンター／見出し）</label>
         <input id="labelFemaleCustomer" type="text" class="field-input">
       </div>
 
@@ -58,7 +64,6 @@
       </div>
 
       <div class="card">
-        <!-- 見出しは app.js が title... を更新する -->
         <div class="card-label"><span id="titleMalePriceTitle">男性料金</span></div>
 
         <label class="field-label" for="price1">パターン1</label>

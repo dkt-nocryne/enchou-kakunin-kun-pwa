@@ -14,11 +14,20 @@
 
 <body class="app-body">
   <div class="app-container">
-    <header class="app-header">
-      <h1>延長確認</h1>
-    </header>
+<header class="app-header app-header--with-toggle">
+  <div class="header-spacer"></div>
+  <h1 class="app-title">延長確認</h1>
+  <div class="header-toggle">
+    <span class="toggle-text">カード</span>
+    <label class="switch" aria-label="カード手数料">
+      <input id="cardFeeToggle" type="checkbox">
+      <span class="slider"></span>
+    </label>
+  </div>
+</header>
 
-    <main class="app-main">
+
+    <main class="app-main scroll">
 
       <!-- 表示エリア -->
       <div class="card price-card">
@@ -27,6 +36,8 @@
       </div>
 
       <div id="extensionCards"></div>
+
+      <div class="spacer"></div>
 
       <!-- 入力エリア -->
       <div class="card">
@@ -37,7 +48,6 @@
         </div>
       </div>
 
-      <!-- カウンター -->
       <div class="card">
         <div class="counter-row">
           <div class="counter-label"><span id="labelMaleCustomer">お客様（男性）</span></div>
@@ -76,7 +86,8 @@
         </div>
       </div>
 
-      <!-- 料金設定画面へ -->
+      <div class="spacer"></div>
+
       <button class="btn primary full" type="button" onclick="location.href='settings.html'">料金設定</button>
 
     </main>
@@ -86,11 +97,9 @@
   <script>
     document.addEventListener('DOMContentLoaded', initApp);
 
-    // 端末の戻る（bfcache復元）でも必ず最新状態に反映
     window.addEventListener('pageshow', () => {
       if (typeof updateCalculator === 'function') updateCalculator();
     });
   </script>
-
 </body>
 </html>
