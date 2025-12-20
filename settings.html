@@ -27,6 +27,23 @@
         </select>
       </div>
 
+      <!-- 表示ラベル（これ1セットだけ） -->
+      <div class="card">
+        <div class="card-label">表示ラベル</div>
+
+        <label class="field-label" for="labelMaleCustomer">男性（カウンター／見出し）</label>
+        <input id="labelMaleCustomer" type="text" class="field-input">
+
+        <label class="field-label" for="labelMainNomination">本指名（カウンター／見出し）</label>
+        <input id="labelMainNomination" type="text" class="field-input">
+
+        <label class="field-label" for="labelInhouseNomination">場内指名（カウンター／見出し）</label>
+        <input id="labelInhouseNomination" type="text" class="field-input">
+
+        <label class="field-label" for="labelFemaleCustomer">女性（カウンター／見出し）</label>
+        <input id="labelFemaleCustomer" type="text" class="field-input">
+      </div>
+
       <div class="card">
         <div class="card-label">延長時間（分）</div>
 
@@ -41,7 +58,8 @@
       </div>
 
       <div class="card">
-        <div class="card-label">男性料金</div>
+        <!-- 見出しは app.js が title... を更新する -->
+        <div class="card-label"><span id="titleMalePriceTitle">男性料金</span></div>
 
         <label class="field-label" for="price1">パターン1</label>
         <input id="price1" type="number" inputmode="numeric" class="field-input right">
@@ -54,20 +72,7 @@
       </div>
 
       <div class="card">
-        <div class="card-label">女性料金</div>
-
-        <label class="field-label" for="femalePrice1">パターン1</label>
-        <input id="femalePrice1" type="number" inputmode="numeric" class="field-input right">
-
-        <label class="field-label" for="femalePrice2">パターン2</label>
-        <input id="femalePrice2" type="number" inputmode="numeric" class="field-input right">
-
-        <label class="field-label" for="femalePrice3">パターン3</label>
-        <input id="femalePrice3" type="number" inputmode="numeric" class="field-input right">
-      </div>
-
-      <div class="card">
-        <div class="card-label">本指名料金</div>
+        <div class="card-label"><span id="titleMainNominationTitle">本指名料金</span></div>
 
         <label class="field-label" for="mainNominationPrice1">パターン1</label>
         <input id="mainNominationPrice1" type="number" inputmode="numeric" class="field-input right">
@@ -80,7 +85,7 @@
       </div>
 
       <div class="card">
-        <div class="card-label">場内指名料金</div>
+        <div class="card-label"><span id="titleInhouseNominationTitle">場内指名料金</span></div>
 
         <label class="field-label" for="inhouseNominationPrice1">パターン1</label>
         <input id="inhouseNominationPrice1" type="number" inputmode="numeric" class="field-input right">
@@ -92,19 +97,28 @@
         <input id="inhouseNominationPrice3" type="number" inputmode="numeric" class="field-input right">
       </div>
 
+      <div class="card">
+        <div class="card-label"><span id="titleFemalePriceTitle">女性料金</span></div>
+
+        <label class="field-label" for="femalePrice1">パターン1</label>
+        <input id="femalePrice1" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="femalePrice2">パターン2</label>
+        <input id="femalePrice2" type="number" inputmode="numeric" class="field-input right">
+
+        <label class="field-label" for="femalePrice3">パターン3</label>
+        <input id="femalePrice3" type="number" inputmode="numeric" class="field-input right">
+      </div>
+
       <button class="btn primary full" type="button" onclick="location.href='index.html'">計算画面へ</button>
 
     </main>
   </div>
 
-<script src="app.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', initSettingsEditorScreen);
-
-  window.addEventListener('pagehide', () => {
-    if (typeof persistSettingsFromForm === 'function') persistSettingsFromForm();
-  });
-</script>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', initSettingsEditorScreen);
+  </script>
 
 </body>
 </html>

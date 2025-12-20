@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bix-extension-app-v7';
+const CACHE_NAME = 'bix-extension-app-v8';
 const URLS_TO_CACHE = [
   './',
   './index.html',

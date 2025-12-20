@@ -23,10 +23,16 @@ const DEFAULT_SETTINGS = {
   mainNominationPrice2: 2400,
   mainNominationPrice3: 4800,
 
-  // 場内指名料金（必要に応じて調整）
+  // 場内指名料金
   inhouseNominationPrice1: 2400,
   inhouseNominationPrice2: 2400,
-  inhouseNominationPrice3: 4800
+  inhouseNominationPrice3: 4800,
+
+  // ★ ラベル（1セットだけ：計算画面の±行＋設定画面の見出しにも流用）
+  labelMaleCustomer: 'お客様（男性）',
+  labelMainNomination: '本指名',
+  labelInhouseNomination: '場内指名',
+  labelFemaleCustomer: 'お客様（女性）'
 };
 
 // ================================
@@ -40,7 +46,6 @@ const LS_KEYS = {
   MAIN_NOMINATION_COUNT: 'bix_mainNominationCount',
   INHOUSE_NOMINATION_COUNT: 'bix_inhouseNominationCount',
 
-  // 旧：移行用（過去データが残っている可能性）
   NOMINATION_COUNT_OLD: 'bix_nominationCount',
 
   SETTINGS: 'bix_appSettings'
@@ -49,6 +54,10 @@ const LS_KEYS = {
 // ================================
 // ユーティリティ
 // ================================
+function safeGetEl(id) {
+  return document.getElementById(id);
+}
+
 function loadSettings() {
   const raw = localStorage.getItem(LS_KEYS.SETTINGS);
   if (!raw) return { ...DEFAULT_SETTINGS };
@@ -65,7 +74,7 @@ function loadSettings() {
     }
 
     return merged;
-  } catch (_) {
+  } catch {
     return { ...DEFAULT_SETTINGS };
   }
 }
@@ -74,11 +83,11 @@ function saveSettings(settings) {
   localStorage.setItem(LS_KEYS.SETTINGS, JSON.stringify(settings));
 }
 
-function loadInt(key, defaultValue) {
+function loadInt(key, def) {
   const raw = localStorage.getItem(key);
-  if (raw == null) return defaultValue;
+  if (raw == null) return def;
   const v = parseInt(raw, 10);
-  return isNaN(v) ? defaultValue : v;
+  return isNaN(v) ? def : v;
 }
 
 function saveString(key, value) {
@@ -89,20 +98,23 @@ function formatYen(value) {
   return '¥' + Number(value).toLocaleString('ja-JP');
 }
 
-function safeGetEl(id) {
-  return document.getElementById(id);
+function clampInt(v, min, max) {
+  const n = parseInt(String(v), 10);
+  if (isNaN(n)) return min;
+  return Math.min(max, Math.max(min, n));
 }
 
 // ================================
-// 計算ロジック（割引なし）
+// 計算ロジック
 // ================================
 function calcTotals(settings, state) {
-  const currentCharge = state.currentCharge;
-  const customerCount = state.customerCount;
-  const femaleCustomerCount = state.femaleCustomerCount;
-
-  const mainNominationCount = state.mainNominationCount;
-  const inhouseNominationCount = state.inhouseNominationCount;
+  const {
+    currentCharge,
+    customerCount,
+    femaleCustomerCount,
+    mainNominationCount,
+    inhouseNominationCount
+  } = state;
 
   const total1 = currentCharge +
     (customerCount * settings.price1 +
@@ -126,7 +138,7 @@ function calcTotals(settings, state) {
 }
 
 // ================================
-// 状態読み出し（旧データ移行を含む）
+// 状態読み出し
 // ================================
 function loadState() {
   const mainRaw = localStorage.getItem(LS_KEYS.MAIN_NOMINATION_COUNT);
@@ -148,14 +160,76 @@ function loadState() {
     currentCharge: loadInt(LS_KEYS.CURRENT_CHARGE, 0),
     customerCount: loadInt(LS_KEYS.CUSTOMER_COUNT, 1),
     femaleCustomerCount: loadInt(LS_KEYS.FEMALE_CUSTOMER_COUNT, 0),
-
     mainNominationCount: loadInt(LS_KEYS.MAIN_NOMINATION_COUNT, 0),
     inhouseNominationCount: loadInt(LS_KEYS.INHOUSE_NOMINATION_COUNT, 0)
   };
 }
 
 // ================================
-// 1画面：初期化
+// UI：ラベル反映（index.html / settings.html 共通）
+// - 計算画面の±行
+// - 設定画面の料金カード見出し（title...）
+//   → 同じ4ラベルを流用する（1セット統一）
+// ================================
+function applyUiLabels(settings) {
+  const setText = (id, text) => {
+    const el = safeGetEl(id);
+    if (!el) return;
+    const v = String(text ?? '').trim();
+    if (v.length) el.textContent = v;
+  };
+
+  // index.html の ± 行
+  setText('labelMaleCustomer', settings.labelMaleCustomer);
+  setText('labelMainNomination', settings.labelMainNomination);
+  setText('labelInhouseNomination', settings.labelInhouseNomination);
+  setText('labelFemaleCustomer', settings.labelFemaleCustomer);
+
+  // settings.html の 見出し（span id: title...）
+  setText('titleMalePriceTitle', settings.labelMaleCustomer);
+  setText('titleMainNominationTitle', settings.labelMainNomination);
+  setText('titleInhouseNominationTitle', settings.labelInhouseNomination);
+  setText('titleFemalePriceTitle', settings.labelFemaleCustomer);
+}
+
+// ================================
+// UI：padding 制御（延長カード + 現在料金カード）
+// ================================
+function applyCardPaddingByCount(settings) {
+  const count = clampInt(settings.cardCount, 1, 3);
+
+  document.querySelectorAll('.extension-card, .price-card').forEach(card => {
+    card.classList.remove('pad-1', 'pad-2', 'pad-3');
+    card.classList.add(`pad-${count}`);
+  });
+}
+
+// ================================
+// 延長カード生成
+// ================================
+function createExtensionCard(label, amount, emphasized) {
+  const card = document.createElement('div');
+  card.className = 'card extension-card';
+
+  const labelDiv = document.createElement('div');
+  labelDiv.className = 'card-label';
+  labelDiv.textContent = label;
+
+  const amountDiv = document.createElement('div');
+  amountDiv.className = 'card-amount';
+  amountDiv.textContent = formatYen(amount);
+
+  if (emphasized) {
+    card.style.background = '#9fb5cfff';
+  }
+
+  card.appendChild(labelDiv);
+  card.appendChild(amountDiv);
+  return card;
+}
+
+// ================================
+// 1画面：初期化（index.html）
 // ================================
 function initApp() {
   initInputBindings();
@@ -163,10 +237,11 @@ function initApp() {
 }
 
 // ================================
-// 表示：再描画
+// 表示：再描画（index.html）
 // ================================
 function updateCalculator() {
   const settings = loadSettings();
+  applyUiLabels(settings);
   const state = loadState();
 
   const currentChargeDisplay = safeGetEl('currentChargeDisplay');
@@ -190,31 +265,12 @@ function updateCalculator() {
   if (settings.cardCount >= 3) {
     container.appendChild(createExtensionCard(`${settings.duration3}分延長 合計`, totals.total3, true));
   }
-}
 
-function createExtensionCard(label, amount, emphasized) {
-  const card = document.createElement('div');
-  card.className = 'card';
-
-  const labelDiv = document.createElement('div');
-  labelDiv.className = 'card-label';
-  labelDiv.textContent = label;
-
-  const amountDiv = document.createElement('div');
-  amountDiv.className = 'card-amount';
-  amountDiv.textContent = formatYen(amount);
-
-  if (emphasized) {
-    card.style.background = '#9fb5cfff';
-  }
-
-  card.appendChild(labelDiv);
-  card.appendChild(amountDiv);
-  return card;
+  applyCardPaddingByCount(settings);
 }
 
 // ================================
-// 入力：イベント紐付け（割引なし）
+// 入力：イベント紐付け（index.html）
 // ================================
 function initInputBindings() {
   const state = loadState();
@@ -226,10 +282,8 @@ function initInputBindings() {
   if (currentChargeInput) {
     currentChargeInput.value = state.currentCharge || '';
     currentChargeInput.addEventListener('input', () => {
-      const raw = String(currentChargeInput.value ?? '');
-      const v = parseInt(raw.replace(/[^0-9]/g, ''), 10);
-      const value = isNaN(v) ? 0 : v;
-      saveString(LS_KEYS.CURRENT_CHARGE, value.toString());
+      const v = parseInt(String(currentChargeInput.value ?? '').replace(/[^0-9]/g, ''), 10);
+      saveString(LS_KEYS.CURRENT_CHARGE, String(isNaN(v) ? 0 : v));
       updateCalculator();
     });
   }
@@ -274,60 +328,15 @@ function initCounter(labelId, incId, decId, storageKey, initialValue, minValue) 
 // ================================
 // 設定編集画面（settings.html）
 // ================================
-function initSettingsEditorScreen() {
-  const settings = loadSettings();
 
-  setVal('cardCount', settings.cardCount);
-
-  setVal('duration1', settings.duration1);
-  setVal('duration2', settings.duration2);
-  setVal('duration3', settings.duration3);
-
-  setVal('price1', settings.price1);
-  setVal('price2', settings.price2);
-  setVal('price3', settings.price3);
-
-  setVal('femalePrice1', settings.femalePrice1);
-  setVal('femalePrice2', settings.femalePrice2);
-  setVal('femalePrice3', settings.femalePrice3);
-
-  setVal('mainNominationPrice1', settings.mainNominationPrice1);
-  setVal('mainNominationPrice2', settings.mainNominationPrice2);
-  setVal('mainNominationPrice3', settings.mainNominationPrice3);
-
-  setVal('inhouseNominationPrice1', settings.inhouseNominationPrice1);
-  setVal('inhouseNominationPrice2', settings.inhouseNominationPrice2);
-  setVal('inhouseNominationPrice3', settings.inhouseNominationPrice3);
-
-  bindInt('cardCount', v => {
-    const n = clampInt(v, 1, 3);
-    const s = loadSettings();
-    s.cardCount = n;
-    saveSettings(s);
-  });
-
-  [
-    'duration1','duration2','duration3',
-    'price1','price2','price3',
-    'femalePrice1','femalePrice2','femalePrice3',
-    'mainNominationPrice1','mainNominationPrice2','mainNominationPrice3',
-    'inhouseNominationPrice1','inhouseNominationPrice2','inhouseNominationPrice3'
-  ].forEach(id => {
-    bindInt(id, v => {
-      const n = Math.max(0, v);
-      const s = loadSettings();
-      s[id] = n;
-      saveSettings(s);
-    });
-  });
-}
-
+// 共通：フォームへ値をセット
 function setVal(id, value) {
   const el = safeGetEl(id);
   if (!el) return;
   el.value = String(value ?? '');
 }
 
+// 共通：数値入力を即保存（input/change）
 function bindInt(id, onChange) {
   const el = safeGetEl(id);
   if (!el) return;
@@ -342,10 +351,86 @@ function bindInt(id, onChange) {
   el.addEventListener('change', handler);
 }
 
-function clampInt(v, min, max) {
-  const n = parseInt(String(v), 10);
-  if (isNaN(n)) return min;
-  return Math.min(max, Math.max(min, n));
+// 共通：テキスト入力を即保存（input/change）
+function bindText(id, onChange) {
+  const el = safeGetEl(id);
+  if (!el) return;
+
+  const handler = () => onChange(String(el.value ?? ''));
+  el.addEventListener('input', handler);
+  el.addEventListener('change', handler);
+}
+
+// settings.html 初期化
+function initSettingsEditorScreen() {
+  const settings = loadSettings();
+
+  // cardCount（select）
+  setVal('cardCount', settings.cardCount);
+  const cardCountEl = safeGetEl('cardCount');
+  if (cardCountEl) {
+    cardCountEl.addEventListener('change', () => {
+      const v = parseInt(cardCountEl.value, 10);
+      const s = loadSettings();
+      s.cardCount = clampInt(isNaN(v) ? 1 : v, 1, 3);
+      saveSettings(s);
+
+      // settings画面で即反映
+      applyUiLabels(s);
+      applyCardPaddingByCount(s);
+    });
+  }
+
+  // 数値項目
+  [
+    'duration1','duration2','duration3',
+    'price1','price2','price3',
+    'femalePrice1','femalePrice2','femalePrice3',
+    'mainNominationPrice1','mainNominationPrice2','mainNominationPrice3',
+    'inhouseNominationPrice1','inhouseNominationPrice2','inhouseNominationPrice3'
+  ].forEach(id => setVal(id, settings[id]));
+
+  [
+    'duration1','duration2','duration3',
+    'price1','price2','price3',
+    'femalePrice1','femalePrice2','femalePrice3',
+    'mainNominationPrice1','mainNominationPrice2','mainNominationPrice3',
+    'inhouseNominationPrice1','inhouseNominationPrice2','inhouseNominationPrice3'
+  ].forEach(id => {
+    bindInt(id, v => {
+      const s = loadSettings();
+      s[id] = Math.max(0, v);
+      saveSettings(s);
+    });
+  });
+
+  // ラベル入力（1セットのみ）
+  [
+    'labelMaleCustomer',
+    'labelMainNomination',
+    'labelInhouseNomination',
+    'labelFemaleCustomer'
+  ].forEach(id => setVal(id, settings[id]));
+
+  [
+    'labelMaleCustomer',
+    'labelMainNomination',
+    'labelInhouseNomination',
+    'labelFemaleCustomer'
+  ].forEach(id => {
+    bindText(id, v => {
+      const s = loadSettings();
+      s[id] = String(v ?? '').trim();
+      saveSettings(s);
+
+      // settings画面内の見出しも即反映
+      applyUiLabels(s);
+    });
+  });
+
+  // 初期反映
+  applyUiLabels(settings);
+  applyCardPaddingByCount(settings);
 }
 
 // ================================
@@ -366,39 +451,4 @@ if ('serviceWorker' in navigator) {
       });
     });
   });
-}
-
-function persistSettingsFromForm() {
-  const s = loadSettings();
-
-  const getNum = (id) => {
-    const el = document.getElementById(id);
-    if (!el) return null;
-    const raw = String(el.value ?? '').replace(/[^0-9]/g, '');
-    const v = parseInt(raw, 10);
-    return isNaN(v) ? 0 : v;
-  };
-
-  const getSel = (id) => {
-    const el = document.getElementById(id);
-    if (!el) return null;
-    const v = parseInt(String(el.value ?? ''), 10);
-    return isNaN(v) ? null : v;
-  };
-
-  const cc = getSel('cardCount');
-  if (cc != null) s.cardCount = Math.min(3, Math.max(1, cc));
-
-  [
-    'duration1','duration2','duration3',
-    'price1','price2','price3',
-    'femalePrice1','femalePrice2','femalePrice3',
-    'mainNominationPrice1','mainNominationPrice2','mainNominationPrice3',
-    'inhouseNominationPrice1','inhouseNominationPrice2','inhouseNominationPrice3'
-  ].forEach(id => {
-    const v = getNum(id);
-    if (v != null) s[id] = Math.max(0, v);
-  });
-
-  saveSettings(s);
 }

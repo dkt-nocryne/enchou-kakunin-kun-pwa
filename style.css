@@ -1,9 +1,10 @@
 /* ================================
-   📌 PWAテーマ固定（iOSダーク/ライト無視）
+   PWAテーマ固定（iOSダーク/ライト無視）
 ================================ */
-:root { color-scheme:none; }
-
+:root { color-scheme: none; }
 * { box-sizing: border-box; }
+
+html, body { height: 100%; }
 
 body.app-body {
   margin: 0;
@@ -12,8 +13,11 @@ body.app-body {
   color: #000000;
 }
 
+/* ================================
+   レイアウト（ヘッダー固定 + メインスクロール）
+================================ */
 .app-container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -22,7 +26,7 @@ body.app-body {
 .app-header {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 5px 5px;
   border-bottom: 1px solid #333;
 }
 
@@ -33,25 +37,40 @@ body.app-body {
   text-align: center;
 }
 
-/* メイン：全体スクロール */
+/* メイン（ここがスクロール領域） */
 .app-main {
   flex: 1;
+  min-height: 0;                /* overflowが効くようにする */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
+/* 旧: .scroll クラス互換（残っていても害がないようにする） */
 .app-main.scroll { overflow-y: auto; }
 
-
-/* カード */
+/* ================================
+   カード
+================================ */
 .card {
   background: #c9aabc;
   border-radius: 12px;
-  padding: 30px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
+
+/* 金額表示カード共通 padding（枚数連動） */
+.price-card.pad-1,
+.extension-card.pad-1 { padding: 50px; }
+
+.price-card.pad-2,
+.extension-card.pad-2 { padding: 30px; }
+
+.price-card.pad-3,
+.extension-card.pad-3 { padding: 20px; }
 
 .card-label {
   font-size: 30px;
@@ -66,14 +85,17 @@ body.app-body {
   word-wrap: break-word;
 }
 
-/* 延長カード群（全体スクロール前提なので、等分割はやめて自然高） */
+/* 延長カード群 */
 #extensionCards {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-bottom: 200px;
 }
 
-/* ボタン */
+/* ================================
+   ボタン
+================================ */
 .btn {
   border: none;
   border-radius: 8px;
@@ -111,7 +133,9 @@ body.app-body {
   padding: 4px 8px;
 }
 
-/* 入力・カウンター */
+/* ================================
+   入力・カウンター
+================================ */
 .field-label {
   display: block;
   margin-bottom: 6px;
@@ -157,19 +181,3 @@ body.app-body {
   text-align: center;
   font-size: 18px;
 }
-html, body { height: 100%; }
-
-.app-container {
-  height: 100vh;        /* min-height ではなく height を持たせる */
-  display: flex;
-  flex-direction: column;
-}
-
-.app-main {
-  flex: 1;
-  min-height: 0;        /* ★これが重要（overflowが効くようになる） */
-  overflow-y: auto;     /* scrollクラスに依存させない方が安全 */
-  -webkit-overflow-scrolling: touch;
-}
-
-#extensionCards { margin-bottom: 300px; }
