@@ -1,5 +1,5 @@
 /* ================================
-   PWAテーマ固定（iOSダーク/ライト無視）
+   1. 基本設定・リセット
 ================================ */
 :root { color-scheme: none; }
 * { box-sizing: border-box; }
@@ -14,7 +14,7 @@ body.app-body {
 }
 
 /* ================================
-   レイアウト（ヘッダー固定 + メインスクロール）
+   2. レイアウト（全体・ヘッダー）
 ================================ */
 .app-container {
   height: 100vh;
@@ -22,14 +22,16 @@ body.app-body {
   flex-direction: column;
 }
 
-/* ヘッダー */
+/* ヘッダー共通 */
 .app-header {
   display: flex;
   align-items: center;
   padding: 5px 5px;
   border-bottom: 1px solid #333;
+  min-height: 50px;
 }
 
+/* 通常ヘッダー（戻るボタンなどがある場合） */
 .app-header h1 {
   font-size: 24px;
   margin: 0;
@@ -37,18 +39,24 @@ body.app-body {
   text-align: center;
 }
 
-/* index用：スイッチ付きヘッダー */
+/* index用：スイッチ付きヘッダー（Gridでレイアウト安定化） */
 .app-header--with-toggle {
-  justify-content: center;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* 左スペーサ / タイトル / 右トグル */
+  align-items: center;
+  column-gap: 12px;
 }
 
-.app-header--with-toggle h1 {
-  flex: 0;
-  text-align: left;
+.app-title {
+  margin: 0;
+  font-size: 24px;
+  text-align: center;
+  white-space: nowrap; /* 1文字折り返し防止 */
 }
 
+/* ヘッダー右側のトグルエリア */
 .header-toggle {
+  justify-self: end;   /* 右端へ */
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -60,7 +68,7 @@ body.app-body {
   color: #000;
 }
 
-/* スイッチ（ON/OFF） */
+/* スイッチ（ON/OFF）のデザイン */
 .switch {
   position: relative;
   display: inline-block;
@@ -103,24 +111,24 @@ body.app-body {
   transform: translateX(20px);
 }
 
-/* メイン（ここがスクロール領域） */
+/* メイン（スクロール領域） */
 .app-main {
   flex: 1;
   min-height: 0;                /* overflowが効くようにする */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* 旧: .scroll クラス互換 */
+/* 旧互換 */
 .app-main.scroll { overflow-y: auto; }
 
+
 /* ================================
-   カード
+   3. カード・金額表示
 ================================ */
 .card {
   background: #c9aabc;
@@ -128,18 +136,13 @@ body.app-body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
 
-/* 金額表示カード共通 padding（枚数連動） */
-.price-card.pad-1,
-.extension-card.pad-1 { padding: 50px; }
-
-.price-card.pad-2,
-.extension-card.pad-2 { padding: 30px; }
-
-.price-card.pad-3,
-.extension-card.pad-3 { padding: 20px; }
+/* 金額表示カード共通 padding（設定画面の枚数と連動） */
+.price-card.pad-1, .extension-card.pad-1 { padding: 50px; }
+.price-card.pad-2, .extension-card.pad-2 { padding: 30px; }
+.price-card.pad-3, .extension-card.pad-3 { padding: 20px; }
 
 .card-label {
-  font-size: 30px;
+  font-size: 24px;
   margin-bottom: 0px;
   text-align: center;
 }
@@ -151,7 +154,7 @@ body.app-body {
   word-wrap: break-word;
 }
 
-/* 延長カード群 */
+/* 延長カード群のエリア */
 #extensionCards {
   display: flex;
   flex-direction: column;
@@ -160,52 +163,14 @@ body.app-body {
 }
 
 /* ================================
-   ボタン
-================================ */
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.btn.primary {
-  width: 100%;
-  background: #686868;
-  color: #f0f0f0;
-}
-
-.btn.secondary {
-  background: #7c6262;
-  color: #ffffff;
-}
-
-.btn.full { width: 100%; }
-
-.btn.small {
-  padding: 4px 10px;
-  font-size: 16px;
-}
-
-.btn.female {
-  background: #a66766;
-  color: #fff;
-}
-
-.btn.back {
-  background: transparent;
-  color: #000000;
-  padding: 4px 8px;
-}
-
-/* ================================
-   入力・カウンター
+   4. 入力フィールド
 ================================ */
 .field-label {
   display: block;
+  margin-top: 6px;
   margin-bottom: 6px;
-  font-size: 14px;
+  text-align: center;
+  font-size: 24px;
 }
 
 .field-row {
@@ -226,50 +191,112 @@ body.app-body {
 
 .field-input.right { text-align: right; }
 
-.counter-row {
+
+/* ================================
+   5. カウンター（最新版）
+================================ */
+
+/* カウンターが入っているカード全体の設定 */
+.counter-card {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 8px;
+  flex-direction: column; /* 強制的に中身を縦並びにする */
 }
 
-.counter-label { font-size: 16px; }
+/* カウンターの各行 */
+.counter-row {
+  width: 100%;                    /* 横幅いっぱいにして縦積みを維持 */
+  display: flex;                  /* 内部は横並び */
+  justify-content: space-between; /* ラベル左、ボタン右 */
+  align-items: center;            /* 上下中央揃え */
+  padding: 15px 5px;              /* 指で押しやすい余白 */
+  border-bottom: 1px solid #eee;  /* 区切り線 */
+  box-sizing: border-box;
+}
 
+/* 最後の行の下線を消す */
+.counter-row:last-child {
+  border-bottom: none;
+}
+
+/* カウンターのラベル */
+.counter-label {
+  font-size: 18px;
+  font-weight: bold;
+  white-space: nowrap;            /* 文字の折り返し禁止 */
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+/* ボタンと数字のセット */
 .counter-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 15px;                      /* ボタンと数字の間隔 */
 }
 
+/* 数字部分 */
 .counter-value {
-  display: inline-block;
-  width: 50px;
+  font-size: 22px;
+  font-weight: bold;
+  width: 40px;                    /* 幅固定でガタつき防止 */
   text-align: center;
-  font-size: 18px;
 }
 
-/* index用：タイトル中央 + スイッチ右端（Gridで安定化） */
-.app-header--with-toggle {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr; /* 左スペーサ / タイトル / 右トグル */
-  align-items: center;
-  column-gap: 12px;
+
+/* ================================
+   6. ボタン（共通・個別）
+================================ */
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
-.app-title {
-  margin: 0;
+.btn.primary {
+  width: 100%;
+  background: #686868;
+  color: #f0f0f0;
+}
+
+.btn.secondary {
+  background: #7c6262;
+  color: #ffffff;
+}
+
+.btn.female {
+  background: #a66766;
+  color: #fff;
+}
+
+.btn.back {
+  background: transparent;
+  color: #000000;
+  padding: 4px 8px;
+}
+
+.btn.full { width: 100%; }
+
+/* カウンター用の丸いボタン（最新のデザインを適用） */
+.btn.small {
+  width: 44px;                    /* 指で確実に押せるサイズ */
+  height: 44px;
+  border-radius: 50%;             /* 真ん丸にする */
   font-size: 24px;
-  text-align: center;
-  white-space: nowrap; /* 1文字折り返し防止 */
-}
-
-.header-spacer {
-  /* 左側の空き。何もしないがレイアウト安定に必要 */
-}
-
-.header-toggle {
-  justify-self: end;   /* 右端へ */
-  display: inline-flex;
+  padding: 0;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 8px;
+  background-color: #f0f0f0;
+  border: none;
+  touch-action: manipulation;     /* 連打対応 */
+  line-height: 1;
 }
+
+.btn.small:active {
+  background-color: #d0d0d0;      /* タップ時の色変化 */
+}
+
+/* 汎用スペーサー */
+.spacer { height: 16px; }

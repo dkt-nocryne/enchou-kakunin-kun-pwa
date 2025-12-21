@@ -14,22 +14,20 @@
 
 <body class="app-body">
   <div class="app-container">
-<header class="app-header app-header--with-toggle">
-  <div class="header-spacer"></div>
-  <h1 class="app-title">延長確認</h1>
-  <div class="header-toggle">
-    <span class="toggle-text">カード</span>
-    <label class="switch" aria-label="カード手数料">
-      <input id="cardFeeToggle" type="checkbox">
-      <span class="slider"></span>
-    </label>
-  </div>
-</header>
-
+    <header class="app-header app-header--with-toggle">
+      <div class="header-spacer"></div>
+      <h1 class="app-title">延長確認</h1>
+      <div class="header-toggle">
+        <span class="toggle-text">カード</span>
+        <label class="switch" aria-label="カード手数料">
+          <input id="cardFeeToggle" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </header>
 
     <main class="app-main scroll">
 
-      <!-- 表示エリア -->
       <div class="card price-card">
         <div class="card-label">現在の料金</div>
         <div id="currentChargeDisplay" class="card-amount">¥0</div>
@@ -39,7 +37,6 @@
 
       <div class="spacer"></div>
 
-      <!-- 入力エリア -->
       <div class="card">
         <label class="field-label" for="currentChargeInput">現在の料金</label>
         <div class="field-row">
@@ -48,8 +45,9 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="counter-row">
+      <div class="card counter-card">
+        
+        <div id="rowMaleCustomer" class="counter-row">
           <div class="counter-label"><span id="labelMaleCustomer">お客様（男性）</span></div>
           <div class="counter-controls">
             <button id="customerDec" class="btn small" type="button">-</button>
@@ -58,7 +56,7 @@
           </div>
         </div>
 
-        <div class="counter-row">
+        <div id="rowMainNomination" class="counter-row">
           <div class="counter-label"><span id="labelMainNomination">本指名</span></div>
           <div class="counter-controls">
             <button id="mainNominationDec" class="btn small" type="button">-</button>
@@ -67,7 +65,7 @@
           </div>
         </div>
 
-        <div class="counter-row">
+        <div id="rowInhouseNomination" class="counter-row">
           <div class="counter-label"><span id="labelInhouseNomination">場内指名</span></div>
           <div class="counter-controls">
             <button id="inhouseNominationDec" class="btn small" type="button">-</button>
@@ -76,7 +74,7 @@
           </div>
         </div>
 
-        <div class="counter-row">
+        <div id="rowFemaleCustomer" class="counter-row">
           <div class="counter-label"><span id="labelFemaleCustomer">お客様（女性）</span></div>
           <div class="counter-controls">
             <button id="femaleDec" class="btn small female" type="button">-</button>
@@ -84,6 +82,7 @@
             <button id="femaleInc" class="btn small female" type="button">+</button>
           </div>
         </div>
+
       </div>
 
       <div class="spacer"></div>

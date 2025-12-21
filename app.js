@@ -213,24 +213,41 @@ function loadState() {
 // UI：ラベル反映（index.html / settings.html 共通）
 // ================================
 function applyUiLabels(settings) {
-  const setText = (id, text) => {
-    const el = safeGetEl(id);
-    if (!el) return;
+  // ラベルの文字をセットしつつ、空なら行ごと隠す関数
+  const updateLabelAndVisibility = (labelId, rowId, text) => {
+    // 1. ラベルの文字をセット
+    const el = safeGetEl(labelId);
     const v = String(text ?? '').trim();
-    if (v.length) el.textContent = v;
+    if (el) {
+      el.textContent = v;
+    }
+
+    // 2. 行（row）が見つかれば、文字がある時だけ表示する
+    const row = safeGetEl(rowId);
+    if (row) {
+      if (v === '') {
+        row.style.display = 'none'; // 文字がないので隠す
+      } else {
+        row.style.display = '';     // 文字があるので表示（元のCSSに戻す）
+      }
+    }
   };
 
-  // index.html の ± 行
-  setText('labelMaleCustomer', settings.labelMaleCustomer);
-  setText('labelMainNomination', settings.labelMainNomination);
-  setText('labelInhouseNomination', settings.labelInhouseNomination);
-  setText('labelFemaleCustomer', settings.labelFemaleCustomer);
+  // index.html の ± 行（ラベルと行IDをセットで渡す）
+  updateLabelAndVisibility('labelMaleCustomer',      'rowMaleCustomer',      settings.labelMaleCustomer);
+  updateLabelAndVisibility('labelMainNomination',    'rowMainNomination',    settings.labelMainNomination);
+  updateLabelAndVisibility('labelInhouseNomination', 'rowInhouseNomination', settings.labelInhouseNomination);
+  updateLabelAndVisibility('labelFemaleCustomer',    'rowFemaleCustomer',    settings.labelFemaleCustomer);
 
-  // settings.html の 見出し（同じラベルを流用）
-  setText('titleMalePriceTitle', settings.labelMaleCustomer);
-  setText('titleMainNominationTitle', settings.labelMainNomination);
-  setText('titleInhouseNominationTitle', settings.labelInhouseNomination);
-  setText('titleFemalePriceTitle', settings.labelFemaleCustomer);
+  // settings.html の 見出し（ここに行IDはないので無視されます）
+  const setTitle = (id, text) => {
+    const el = safeGetEl(id);
+    if (el) el.textContent = String(text ?? '').trim();
+  };
+  setTitle('titleMalePriceTitle', settings.labelMaleCustomer);
+  setTitle('titleMainNominationTitle', settings.labelMainNomination);
+  setTitle('titleInhouseNominationTitle', settings.labelInhouseNomination);
+  setTitle('titleFemalePriceTitle', settings.labelFemaleCustomer);
 }
 
 // ================================

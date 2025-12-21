@@ -1,4 +1,6 @@
-const CACHE_NAME = 'bix-extension-app-v9';
+// service-worker.js
+
+const CACHE_NAME = 'bix-extension-app-v10'; // バージョンを上げました
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -6,69 +8,103 @@ const URLS_TO_CACHE = [
   './style.css',
   './app.js',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  // アイコンファイルが実際に存在することを確認してください
+  // './icons/icon-192.png',
+  // './icons/icon-512.png'
 ];
 
-
-/* ===== Install ===== */
+/* ===== Install: キャッシュへのファイル格納 ===== */
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
+    caches.open(CACHE_NAME).then(cache => {
+      // 失敗してもインストールを止めないよう、個別にcatchすることも検討できますが、
+      // 基本的にはこれでOKです。
+      return cache.addAll(URLS_TO_CACHE);
+    })
   );
+  // インストール後、待機中のSWを即座にアクティブにする
   self.skipWaiting();
 });
 
-/* ===== Activate ===== */
+/* ===== Activate: 古いキャッシュの削除 ===== */
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(key => (key !== CACHE_NAME ? caches.delete(key) : null)))
+      Promise.all(
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      )
     )
   );
-  self.clients.claim();
+  // 即座にページをコントロールする
+  return self.clients.claim();
 });
 
-/* ===== Fetch ===== */
+/* ===== Fetch: 通信の制御 ===== */
 self.addEventListener('fetch', event => {
-  // 安全のため GET 以外は触らない
+  // 安全のため GET 以外はスルー
   if (event.request.method !== 'GET') return;
 
   const req = event.request;
+  const url = new URL(req.url);
 
-  // ページ遷移（index.html など）は「ネット優先＋失敗時 index.html にフォールバック」
-  if (req.mode === 'navigate') {
+  // 1. HTMLページ（ナビゲーション）の場合
+  // 戦略: Network First (ネット優先 -> ダメならキャッシュ)
+  // 理由: 料金設定などのロジック変更をすぐに反映させるため
+  if (req.mode === 'navigate' || url.pathname.endsWith('.html')) {
     event.respondWith(
       fetch(req)
-        .then(res => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+        .then(async res => {
+          // 正常なレスポンスのみキャッシュする
+          if (res.ok) {
+            const copy = res.clone();
+            const cache = await caches.open(CACHE_NAME);
+            // ★修正: 固定の './index.html' ではなく、リクエストされたURLに対して保存する
+            cache.put(req, copy);
+          }
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => {
+          // オフライン時はキャッシュから探す
+          return caches.match(req).then(cached => {
+            // キャッシュもなければ、index.html を返す（SPA的なフォールバックが必要な場合）
+            // 今回は settings.html もあるので、単純にキャッシュを返すだけに留めるのが安全
+            return cached;
+          });
+        })
     );
     return;
   }
 
-  // それ以外（CSS/JS/画像など）は「キャッシュ優先＋裏で更新」
+  // 2. CSS, JS, 画像などの静的リソース
+  // 戦略: Stale-While-Revalidate (キャッシュ優先 -> 裏で更新)
+  // 理由: 画面表示を爆速にするため
   event.respondWith(
     caches.match(req).then(cached => {
-      const fetchPromise = fetch(req)
-        .then(res => {
-          // キャッシュ更新（成功時のみ）
+      // ネットワークへのリクエスト（裏側で実行）
+      const fetchPromise = fetch(req).then(async res => {
+        if (res.ok) {
           const copy = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
-          return res;
-        })
-        .catch(() => cached); // ネット失敗時はキャッシュ
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(req, copy);
+        }
+        return res;
+      }).catch(() => {
+        // ネットワークエラーは何もしない（キャッシュが生きる）
+      });
 
-      // まずキャッシュがあれば即返し、なければネット
+      // キャッシュがあればそれを即座に返す。なければネットワークの結果を待つ
       return cached || fetchPromise;
     })
   );
 });
 
-/* ===== 更新がある場合 即ページに通知し反映 ===== */
+// app.js からの更新通知用
 self.addEventListener('message', event => {
-  if (event.data === 'skipWaiting') self.skipWaiting();
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
