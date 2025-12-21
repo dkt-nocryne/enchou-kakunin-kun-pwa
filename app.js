@@ -140,8 +140,16 @@ function applyCardFee(amount, percent) {
   const p = clampNumber(percent, 0, 100);
   if (p <= 0) return amount;
 
-  const raw = amount * (1 + p / 100);
+  // 1. まず普通に計算する（ここで 13200.000001 のような誤差が出ることがある）
+  let raw = amount * (1 + p / 100);
+
+  // 2. ★修正ポイント：一度、四捨五入して整数の「円」にする
+  // これで .000001 のような計算誤差（ゴミ）を取り除きます
+  raw = Math.round(raw);
+
+  // 3. その綺麗な数字を使って、100円単位の切り上げを行う
   const rounded = Math.ceil(raw / ROUND_UNIT) * ROUND_UNIT;
+  
   return Math.trunc(rounded);
 }
 
