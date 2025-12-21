@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'bix-extension-app-v10'; // バージョンを上げました
+const CACHE_NAME = 'bix-extension-app-v11';
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -9,8 +9,8 @@ const URLS_TO_CACHE = [
   './app.js',
   './manifest.json',
   // アイコンファイルが実際に存在することを確認してください
-  // './icons/icon-192.png',
-  // './icons/icon-512.png'
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 /* ===== Install: キャッシュへのファイル格納 ===== */

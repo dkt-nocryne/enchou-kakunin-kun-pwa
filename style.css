@@ -168,6 +168,7 @@ body.app-body {
 .field-label {
   display: block;
   margin-top: 6px;
+  font-weight: bold;
   margin-bottom: 6px;
   text-align: center;
   font-size: 24px;
@@ -220,7 +221,7 @@ body.app-body {
 
 /* カウンターのラベル */
 .counter-label {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   white-space: nowrap;            /* 文字の折り返し禁止 */
   flex-shrink: 0;
