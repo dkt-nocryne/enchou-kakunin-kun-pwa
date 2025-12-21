@@ -10,7 +10,8 @@ const URLS_TO_CACHE = [
   './manifest.json',
   // アイコンファイルが実際に存在することを確認してください
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './fonts/lineseedjp_a_ttf_bd.ttf',
 ];
 
 /* ===== Install: キャッシュへのファイル格納 ===== */
