@@ -138,7 +138,7 @@ body.app-body {
 
 /* 金額表示カード共通 padding（設定画面の枚数と連動） */
 .price-card.pad-1, .extension-card.pad-1 { padding: 50px; }
-.price-card.pad-2, .extension-card.pad-2 { padding: 30px; }
+.price-card.pad-2, .extension-card.pad-2 { padding: 40px; }
 .price-card.pad-3, .extension-card.pad-3 { padding: 20px; }
 
 .card-label {

@@ -1,6 +1,6 @@
 // service-worker.js
 
-const CACHE_NAME = 'bix-extension-app-v11';
+const CACHE_NAME = 'bix-extension-app-v12';
 const URLS_TO_CACHE = [
   './',
   './index.html',
