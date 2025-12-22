@@ -537,7 +537,7 @@ function fitTextToWidth(el) {
   if (!el) return;
 
   // 1. まず最大サイズにリセット（CSSの .card-amount の初期サイズに合わせる）
-  const MAX_SIZE = 60; 
+  const MAX_SIZE = 58; 
   el.style.fontSize = MAX_SIZE + 'px';
 
   // 2. 文字の幅が枠を超えているかチェック
