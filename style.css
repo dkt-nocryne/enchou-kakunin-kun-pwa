@@ -160,10 +160,15 @@ body.app-body {
 }
 
 .card-amount {
-  font-size: 60px;
+  font-size: 60px;          /* 基本の大きさ（最大サイズ） */
   font-weight: bold;
   text-align: center;
-  word-wrap: break-word;
+  
+  /* ★以下を追加・修正 */
+  white-space: nowrap;      /* 勝手に改行させない */
+  overflow: hidden;         /* はみ出した部分は計算中は隠す */
+  line-height: 1.2;         /* 行間を少し詰めて安定させる */
+  transition: font-size 0.1s; /* サイズ変更を少し滑らかに（お好みで） */
 }
 
 /* 延長カード群のエリア */

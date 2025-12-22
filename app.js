@@ -349,6 +349,8 @@ function updateCalculator() {
   }
 
   applyCardPaddingByCount(settings);
+      // 計算結果が表示された後に、文字サイズを調整します
+  fitAllAmounts();
 }
 
 // ================================
@@ -526,6 +528,39 @@ function initSettingsEditorScreen() {
   // 初期反映
   applyUiLabels(settings);
   applyCardPaddingByCount(settings);
+}
+
+// ================================
+// 文字サイズ自動調整（はみ出し防止）
+// ================================
+function fitTextToWidth(el) {
+  if (!el) return;
+
+  // 1. まず最大サイズにリセット（CSSの .card-amount の初期サイズに合わせる）
+  const MAX_SIZE = 60; 
+  el.style.fontSize = MAX_SIZE + 'px';
+
+  // 2. 文字の幅が枠を超えているかチェック
+  if (el.scrollWidth > el.clientWidth) {
+    const ratio = el.clientWidth / el.scrollWidth;
+    let newSize = Math.floor(MAX_SIZE * ratio);
+    
+    // 小さくなりすぎないように下限（20px）を設定
+    newSize = Math.max(20, newSize);
+    
+    el.style.fontSize = newSize + 'px';
+  }
+}
+
+// 画面内の全ての金額表示（現在の料金＋延長料金すべて）を一括調整
+function fitAllAmounts() {
+  // 1. 現在の料金
+  fitTextToWidth(safeGetEl('currentChargeDisplay'));
+
+  // 2. 延長カードの金額たち（ここが延長料金用です！）
+  document.querySelectorAll('.extension-card .card-amount').forEach(el => {
+    fitTextToWidth(el);
+  });
 }
 
 // ================================
