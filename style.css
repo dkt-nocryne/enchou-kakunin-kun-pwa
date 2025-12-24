@@ -160,13 +160,19 @@ body.app-body {
 }
 
 .card-amount {
-  font-size: 58px;          /* 基本の大きさ（最大サイズ） */
+  font-size: 72px;
   font-weight: bold;
   text-align: center;
-  white-space: nowrap;      /* 勝手に改行させない */
-  overflow: hidden;         /* はみ出した部分は計算中は隠す */
-  line-height: 1.2;         /* 行間を少し詰めて安定させる */
-  transition: font-size 0.1s; /* サイズ変更を少し滑らかに（お好みで） */
+  
+  /* ★以下を確認・修正 */
+  white-space: nowrap;
+  overflow: hidden;    /* はみ出した部分は隠す */
+  
+  /* ★新しく追加：Flexboxでガチガチに中央寄せする */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;         /* 幅いっぱい使う */
 }
 
 /* 延長カード群のエリア */

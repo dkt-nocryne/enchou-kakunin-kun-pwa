@@ -350,7 +350,9 @@ function updateCalculator() {
 
   applyCardPaddingByCount(settings);
       // 計算結果が表示された後に、文字サイズを調整します
-  fitAllAmounts();
+  requestAnimationFrame(() => {
+    fitAllAmounts();
+  });
 }
 
 // ================================
@@ -531,33 +533,39 @@ function initSettingsEditorScreen() {
 }
 
 // ================================
-// 文字サイズ自動調整（はみ出し防止）
+// 文字サイズ自動調整（Scale Transform方式）
 // ================================
 function fitTextToWidth(el) {
   if (!el) return;
 
-  // 1. まず最大サイズにリセット（CSSの .card-amount の初期サイズに合わせる）
-  const MAX_SIZE = 58; 
-  el.style.fontSize = MAX_SIZE + 'px';
+  // 1. 今の文字を取得
+  // （spanが入っている可能性を考慮して textContent を取る）
+  const text = el.textContent;
 
-  // 2. 文字の幅が枠を超えているかチェック
-  if (el.scrollWidth > el.clientWidth) {
-    const ratio = el.clientWidth / el.scrollWidth;
-    let newSize = Math.floor(MAX_SIZE * ratio);
-    
-    // 小さくなりすぎないように下限（20px）を設定
-    newSize = Math.max(20, newSize);
-    
-    el.style.fontSize = newSize + 'px';
+  // 2. 中身を span で包み直す（毎回作り直すのが一番確実）
+  // これにより「現在の料金」などの文字更新処理がどう行われていても対応できます
+  el.innerHTML = `<span style="display:inline-block; white-space:nowrap; transform-origin:center;">${text}</span>`;
+  
+  const span = el.firstElementChild;
+
+  // 3. 計測と縮小
+  // 親（el）の幅 と 子（span）の幅 を比べる
+  const parentWidth = el.clientWidth;
+  const childWidth = span.scrollWidth;
+
+  if (childWidth > parentWidth) {
+    const scale = parentWidth / childWidth;
+    // ギリギリすぎると見切れるので0.95倍くらいにする
+    span.style.transform = `scale(${scale * 0.95})`;
   }
 }
 
-// 画面内の全ての金額表示（現在の料金＋延長料金すべて）を一括調整
+// 画面内の全ての金額表示を一括調整
 function fitAllAmounts() {
-  // 1. 現在の料金
+  // 現在の料金
   fitTextToWidth(safeGetEl('currentChargeDisplay'));
 
-  // 2. 延長カードの金額たち（ここが延長料金用です！）
+  // 延長カード
   document.querySelectorAll('.extension-card .card-amount').forEach(el => {
     fitTextToWidth(el);
   });
