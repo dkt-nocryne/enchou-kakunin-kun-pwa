@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS = {
   labelInhouseNomination: '場内指名',
   labelFemaleCustomer: 'お客様（女性）',
 
-  // ★追加：カード手数料（%）
+  // カード手数料（%）
   cardFeePercent: 0
 };
 
@@ -53,7 +53,7 @@ const LS_KEYS = {
 
   SETTINGS: 'bix_appSettings',
 
-  // ★追加：カード手数料 ON/OFF（画面状態）
+  // カード手数料 ON/OFF（画面状態）
   CARD_FEE_ENABLED: 'bix_cardFeeEnabled'
 };
 
@@ -72,16 +72,14 @@ function loadSettings() {
     const obj = JSON.parse(raw);
     const merged = { ...DEFAULT_SETTINGS, ...obj };
 
-    // 旧設定（nominationPrice1..3）が残っている場合、本指名へ寄せる
+    // 旧設定の移行処理
     if (obj && typeof obj === 'object') {
       if (merged.mainNominationPrice1 == null && obj.nominationPrice1 != null) merged.mainNominationPrice1 = obj.nominationPrice1;
       if (merged.mainNominationPrice2 == null && obj.nominationPrice2 != null) merged.mainNominationPrice2 = obj.nominationPrice2;
       if (merged.mainNominationPrice3 == null && obj.nominationPrice3 != null) merged.mainNominationPrice3 = obj.nominationPrice3;
     }
 
-    // cardFeePercent が文字列で入っていても安全に
     merged.cardFeePercent = clampNumber(merged.cardFeePercent, 0, 100);
-
     return merged;
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -131,8 +129,6 @@ function clampNumber(v, min, max) {
 
 // ================================
 // カード手数料計算
-// - 例に合わせ、100円単位で切り上げ（15360→15400）
-// - 10円単位にしたい場合は ROUND_UNIT を 10 に変更
 // ================================
 const ROUND_UNIT = 100;
 
@@ -140,14 +136,13 @@ function applyCardFee(amount, percent) {
   const p = clampNumber(percent, 0, 100);
   if (p <= 0) return amount;
 
-  // 1. まず普通に計算する（ここで 13200.000001 のような誤差が出ることがある）
+  // 1. まず計算
   let raw = amount * (1 + p / 100);
 
-  // 2. ★修正ポイント：一度、四捨五入して整数の「円」にする
-  // これで .000001 のような計算誤差（ゴミ）を取り除きます
+  // 2. 誤差対策：一度整数に丸める（13200.0001 -> 13200）
   raw = Math.round(raw);
 
-  // 3. その綺麗な数字を使って、100円単位の切り上げを行う
+  // 3. 100円単位で切り上げ
   const rounded = Math.ceil(raw / ROUND_UNIT) * ROUND_UNIT;
   
   return Math.trunc(rounded);
@@ -193,7 +188,6 @@ function loadState() {
   const mainRaw = localStorage.getItem(LS_KEYS.MAIN_NOMINATION_COUNT);
   const inhouseRaw = localStorage.getItem(LS_KEYS.INHOUSE_NOMINATION_COUNT);
 
-  // 旧「指名」キーが残っていて、新キーが未設定なら本指名へ移行
   if (mainRaw == null && inhouseRaw == null) {
     const old = localStorage.getItem(LS_KEYS.NOMINATION_COUNT_OLD);
     if (old != null) {
@@ -201,7 +195,6 @@ function loadState() {
       const n = isNaN(v) ? 0 : v;
       saveString(LS_KEYS.MAIN_NOMINATION_COUNT, String(n));
       saveString(LS_KEYS.INHOUSE_NOMINATION_COUNT, '0');
-      // localStorage.removeItem(LS_KEYS.NOMINATION_COUNT_OLD);
     }
   }
 
@@ -211,8 +204,6 @@ function loadState() {
     femaleCustomerCount: loadInt(LS_KEYS.FEMALE_CUSTOMER_COUNT, 0),
     mainNominationCount: loadInt(LS_KEYS.MAIN_NOMINATION_COUNT, 0),
     inhouseNominationCount: loadInt(LS_KEYS.INHOUSE_NOMINATION_COUNT, 0),
-
-    // ★追加：カード手数料ON/OFF（画面状態）
     cardFeeEnabled: loadBool(LS_KEYS.CARD_FEE_ENABLED, false)
   };
 }
@@ -223,31 +214,23 @@ function loadState() {
 function applyUiLabels(settings) {
   // ラベルの文字をセットしつつ、空なら行ごと隠す関数
   const updateLabelAndVisibility = (labelId, rowId, text) => {
-    // 1. ラベルの文字をセット
     const el = safeGetEl(labelId);
     const v = String(text ?? '').trim();
-    if (el) {
-      el.textContent = v;
-    }
+    if (el) el.textContent = v;
 
-    // 2. 行（row）が見つかれば、文字がある時だけ表示する
     const row = safeGetEl(rowId);
     if (row) {
-      if (v === '') {
-        row.style.display = 'none'; // 文字がないので隠す
-      } else {
-        row.style.display = '';     // 文字があるので表示（元のCSSに戻す）
-      }
+      row.style.display = (v === '') ? 'none' : '';
     }
   };
 
-  // index.html の ± 行（ラベルと行IDをセットで渡す）
+  // index.html の ± 行
   updateLabelAndVisibility('labelMaleCustomer',      'rowMaleCustomer',      settings.labelMaleCustomer);
   updateLabelAndVisibility('labelMainNomination',    'rowMainNomination',    settings.labelMainNomination);
   updateLabelAndVisibility('labelInhouseNomination', 'rowInhouseNomination', settings.labelInhouseNomination);
   updateLabelAndVisibility('labelFemaleCustomer',    'rowFemaleCustomer',    settings.labelFemaleCustomer);
 
-  // settings.html の 見出し（ここに行IDはないので無視されます）
+  // settings.html の 見出し
   const setTitle = (id, text) => {
     const el = safeGetEl(id);
     if (el) el.textContent = String(text ?? '').trim();
@@ -256,18 +239,6 @@ function applyUiLabels(settings) {
   setTitle('titleMainNominationTitle', settings.labelMainNomination);
   setTitle('titleInhouseNominationTitle', settings.labelInhouseNomination);
   setTitle('titleFemalePriceTitle', settings.labelFemaleCustomer);
-}
-
-// ================================
-// UI：padding 制御（延長カード + 現在料金カード）
-// ================================
-function applyCardPaddingByCount(settings) {
-  const count = clampInt(settings.cardCount, 1, 3);
-
-  document.querySelectorAll('.extension-card, .price-card').forEach(card => {
-    card.classList.remove('pad-1', 'pad-2', 'pad-3');
-    card.classList.add(`pad-${count}`);
-  });
 }
 
 // ================================
@@ -295,6 +266,37 @@ function createExtensionCard(label, amount, emphasized) {
 }
 
 // ================================
+// 文字サイズ自動調整（Scale Transform方式）
+// ================================
+function fitTextToWidth(el) {
+  if (!el) return;
+
+  const text = el.textContent;
+  
+  // DOM再構築（リセットも兼ねる）
+  el.innerHTML = `<span style="display:inline-block; white-space:nowrap; transform-origin:center;">${text}</span>`;
+  
+  const span = el.firstElementChild;
+  const parentWidth = el.clientWidth;
+  const childWidth = span.scrollWidth;
+
+  if (childWidth > parentWidth) {
+    const scale = parentWidth / childWidth;
+    // マージン考慮で少し小さめに(0.95倍)
+    span.style.transform = `scale(${scale * 0.95})`;
+  }
+}
+
+function fitAllAmounts() {
+  // 現在の料金
+  fitTextToWidth(safeGetEl('currentChargeDisplay'));
+  // 延長カード
+  document.querySelectorAll('.extension-card .card-amount').forEach(el => {
+    fitTextToWidth(el);
+  });
+}
+
+// ================================
 // 1画面：初期化（index.html）
 // ================================
 function initApp() {
@@ -302,16 +304,13 @@ function initApp() {
   updateCalculator();
 }
 
-// ================================
-// 表示：再描画（index.html）
-// ================================
 function updateCalculator() {
   const settings = loadSettings();
   applyUiLabels(settings);
 
   const state = loadState();
 
-  // indexヘッダーのトグル反映（存在する場合のみ）
+  // indexヘッダーのトグル反映
   const toggle = safeGetEl('cardFeeToggle');
   if (toggle) toggle.checked = !!state.cardFeeEnabled;
 
@@ -326,7 +325,7 @@ function updateCalculator() {
     currentChargeDisplay.textContent = formatYen(shown);
   }
 
-  // 延長カード
+  // 延長カード生成
   const container = safeGetEl('extensionCards');
   if (!container) return;
 
@@ -348,8 +347,10 @@ function updateCalculator() {
     container.appendChild(createExtensionCard(`${settings.duration3}分延長 合計`, t3, true));
   }
 
-  applyCardPaddingByCount(settings);
-      // 計算結果が表示された後に、文字サイズを調整します
+  // ★修正: Flexboxで高さを自動調整するため、旧パディング計算(applyCardPaddingByCount)は不要になりました。
+  // その代わり、描画後に文字サイズ調整を行います。
+
+  // 文字サイズ調整（描画フレームに合わせて実行）
   requestAnimationFrame(() => {
     fitAllAmounts();
   });
@@ -361,7 +362,7 @@ function updateCalculator() {
 function initInputBindings() {
   const state = loadState();
 
-  // ★追加：カード手数料トグル
+  // カード手数料トグル
   const cardFeeToggle = safeGetEl('cardFeeToggle');
   if (cardFeeToggle) {
     cardFeeToggle.checked = !!state.cardFeeEnabled;
@@ -467,18 +468,16 @@ function initSettingsEditorScreen() {
       saveSettings(s);
 
       applyUiLabels(s);
-      applyCardPaddingByCount(s);
+      // CSS側で高さ調整するためパディング設定関数は不要ですが、エラーにならないよう削除済み
     });
   }
 
-  // ★カード手数料（%）
+  // カード手数料（%）
   setVal('cardFeePercent', settings.cardFeePercent);
   bindInt('cardFeePercent', v => {
     const s = loadSettings();
     s.cardFeePercent = clampInt(v, 0, 100);
     saveSettings(s);
-
-    // settings画面の見出し等も即反映（計算画面側は戻った時に反映）
     applyUiLabels(s);
   });
 
@@ -505,20 +504,16 @@ function initSettingsEditorScreen() {
     });
   });
 
-  // ラベル入力（1セット）
-  [
+  // ラベル入力
+  const labelKeys = [
     'labelMaleCustomer',
     'labelMainNomination',
     'labelInhouseNomination',
     'labelFemaleCustomer'
-  ].forEach(id => setVal(id, settings[id]));
-
-  [
-    'labelMaleCustomer',
-    'labelMainNomination',
-    'labelInhouseNomination',
-    'labelFemaleCustomer'
-  ].forEach(id => {
+  ];
+  
+  labelKeys.forEach(id => setVal(id, settings[id]));
+  labelKeys.forEach(id => {
     bindText(id, v => {
       const s = loadSettings();
       s[id] = String(v ?? '').trim();
@@ -529,46 +524,6 @@ function initSettingsEditorScreen() {
 
   // 初期反映
   applyUiLabels(settings);
-  applyCardPaddingByCount(settings);
-}
-
-// ================================
-// 文字サイズ自動調整（Scale Transform方式）
-// ================================
-function fitTextToWidth(el) {
-  if (!el) return;
-
-  // 1. 今の文字を取得
-  // （spanが入っている可能性を考慮して textContent を取る）
-  const text = el.textContent;
-
-  // 2. 中身を span で包み直す（毎回作り直すのが一番確実）
-  // これにより「現在の料金」などの文字更新処理がどう行われていても対応できます
-  el.innerHTML = `<span style="display:inline-block; white-space:nowrap; transform-origin:center;">${text}</span>`;
-  
-  const span = el.firstElementChild;
-
-  // 3. 計測と縮小
-  // 親（el）の幅 と 子（span）の幅 を比べる
-  const parentWidth = el.clientWidth;
-  const childWidth = span.scrollWidth;
-
-  if (childWidth > parentWidth) {
-    const scale = parentWidth / childWidth;
-    // ギリギリすぎると見切れるので0.95倍くらいにする
-    span.style.transform = `scale(${scale * 0.95})`;
-  }
-}
-
-// 画面内の全ての金額表示を一括調整
-function fitAllAmounts() {
-  // 現在の料金
-  fitTextToWidth(safeGetEl('currentChargeDisplay'));
-
-  // 延長カード
-  document.querySelectorAll('.extension-card .card-amount').forEach(el => {
-    fitTextToWidth(el);
-  });
 }
 
 // ================================

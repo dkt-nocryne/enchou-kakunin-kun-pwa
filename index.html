@@ -28,17 +28,21 @@
 
     <main class="app-main scroll">
 
-      <div class="card price-card">
-        <div class="card-label">現在の料金</div>
-        <div id="currentChargeDisplay" class="card-amount">¥0</div>
-      </div>
+      <div class="display-wrapper">
+        
+        <div class="card price-card">
+          <div class="card-label">現在の料金</div>
+          <div id="currentChargeDisplay" class="card-amount">¥0</div>
+        </div>
 
-      <div id="extensionCards"></div>
+        <div id="extensionCards"></div>
+        
+      </div>
 
       <div class="spacer"></div>
 
       <div class="card">
-        <label class="fieldlabelcurrentCharge" for="currentChargeInput">現在の料金</label>
+        <label class="field-label" for="currentChargeInput">現在の料金</label>
         <div class="field-row">
           <input id="currentChargeInput" type="number" inputmode="numeric" class="field-input right">
           <button id="currentChargeReset" class="btn secondary" type="button">リセット</button>

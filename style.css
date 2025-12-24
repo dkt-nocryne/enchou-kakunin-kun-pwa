@@ -1,10 +1,10 @@
 /* ================================
-   1. フォント定義 (style.cssの一番上に追加)
+   1. フォント定義
 ================================ */
 @font-face {
-  font-family: 'lineseedjp';        /* 自分で好きな名前をつけてOK */
-  src: url('./fonts/lineseedjp_a_ttf_bd.ttf');      /* ファイルの場所 */
-  font-display: swap;                   /* 読み込み中も文字を表示させる設定 */
+  font-family: 'lineseedjp';
+  src: url('./fonts/lineseedjp_a_ttf_bd.ttf');
+  font-display: swap;
 }
 
 /* ================================
@@ -17,9 +17,7 @@ html, body { height: 100%; }
 
 body.app-body {
   margin: 0;
-  /* ★ここで作ったフォントを指定する */
   font-family: 'lineseedjp', system-ui, -apple-system, sans-serif;
-  
   background: #ffffff;
   color: #000000;
 }
@@ -40,20 +38,13 @@ body.app-body {
   padding: 5px 5px;
   border-bottom: 1px solid #333;
   min-height: 50px;
+  background: #fff; /* 背景色を明示（透け防止） */
+  z-index: 10;
 }
 
-/* 通常ヘッダー（戻るボタンなどがある場合） */
-.app-header h1 {
-  font-size: 24px;
-  margin: 0;
-  flex: 1;
-  text-align: center;
-}
-
-/* index用：スイッチ付きヘッダー（Gridでレイアウト安定化） */
 .app-header--with-toggle {
   display: grid;
-  grid-template-columns: 1fr auto 1fr; /* 左スペーサ / タイトル / 右トグル */
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   column-gap: 12px;
 }
@@ -62,145 +53,132 @@ body.app-body {
   margin: 0;
   font-size: 24px;
   text-align: center;
-  white-space: nowrap; /* 1文字折り返し防止 */
+  white-space: nowrap;
 }
 
-/* ヘッダー右側のトグルエリア */
 .header-toggle {
-  justify-self: end;   /* 右端へ */
+  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   user-select: none;
 }
 
-.toggle-text {
-  font-size: 14px;
-  color: #000;
-}
+.toggle-text { font-size: 14px; color: #000; }
 
-/* スイッチ（ON/OFF）のデザイン */
+/* スイッチ */
 .switch {
   position: relative;
   display: inline-block;
   width: 44px;
   height: 24px;
 }
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
+.switch input { opacity: 0; width: 0; height: 0; }
 .slider {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background-color: #999;
-  transition: 0.2s;
-  border-radius: 999px;
+  position: absolute; cursor: pointer; inset: 0;
+  background-color: #999; transition: 0.2s; border-radius: 999px;
 }
-
 .slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  top: 3px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
+  position: absolute; content: ""; height: 18px; width: 18px;
+  left: 3px; top: 3px; background-color: white;
+  transition: 0.2s; border-radius: 50%;
 }
+.switch input:checked + .slider { background-color: #4f7bd9; }
+.switch input:checked + .slider:before { transform: translateX(20px); }
 
-.switch input:checked + .slider {
-  background-color: #4f7bd9;
-}
-
-.switch input:checked + .slider:before {
-  transform: translateX(20px);
-}
-
-/* メイン（スクロール領域） */
+/* ================================
+   ★重要修正: メインエリアのスクロール設定
+================================ */
 .app-main {
   flex: 1;
-  min-height: 0;                /* overflowが効くようにする */
-  overflow-y: auto;
+  overflow-y: auto;          /* 縦スクロールを許可 */
   -webkit-overflow-scrolling: touch;
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  
+  /* ★修正ポイント: ここを flex にすると重なる原因になるので block に戻します */
+  display: block; 
 }
-
-/* 旧互換 */
-.app-main.scroll { overflow-y: auto; }
 
 
 /* ================================
-   3. カード・金額表示
+   3. 表示エリア（画面上部の金額カードたち）
 ================================ */
-.card {
-  background: #c9aabc;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+.display-wrapper {
+  /* ★修正: 「画面全体の高さ(100vh)」から「ヘッダーと余白(約100px)」を引いた高さにする */
+  /* これで、ちょうど画面の下端までカードが広がります */
+  height: calc(100vh - 100px);
+  
+  min-height: 300px;
+  margin-bottom: 20px;
+  
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* 金額表示カード共通 padding（設定画面の枚数と連動） */
-.price-card.pad-1, .extension-card.pad-1 { padding: 50px; }
-.price-card.pad-2, .extension-card.pad-2 { padding: 40px; }
-.price-card.pad-3, .extension-card.pad-3 { padding: 20px; }
+/* ラッパーの中にあるカード */
+.display-wrapper .card, 
+.display-wrapper .extension-card {
+  flex: 1; /* 高さを山分けする */
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
+  padding: 0 !important; 
+  margin: 0 !important;
+  width: 100%;
+}
+
+.card {
+  background: #c9aabc; /* デフォルト背景（ピンク系） */
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  padding: 16px; /* 通常のカードのパディング */
+  margin-bottom: 16px; /* カードごとの隙間 */
+}
+
+/* 延長カード（青系） */
+.extension-card {
+  background: #9fb5cf !important;
+}
 
 .card-label {
-  font-size: 24px;
-  margin-bottom: 0px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
+  margin-bottom: 4px;
 }
 
 .card-amount {
-  font-size: 72px;
+  font-size: 60px; /* JSで調整されるので基準値 */
   font-weight: bold;
   text-align: center;
-  
-  /* ★以下を確認・修正 */
   white-space: nowrap;
-  overflow: hidden;    /* はみ出した部分は隠す */
+  overflow: hidden;
   
-  /* ★新しく追加：Flexboxでガチガチに中央寄せする */
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;         /* 幅いっぱい使う */
+  width: 100%;
+  line-height: 1.1;
 }
 
-/* 延長カード群のエリア */
+/* 延長カードのエリア（wrapperがある場合はスタイル無効化） */
 #extensionCards {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 200px;
+  display: contents; 
 }
+
 
 /* ================================
-   4. 入力フィールド
+   4. 入力エリア（画面下部）
 ================================ */
 .field-label {
   display: block;
-  margin-top: 6px;
   font-weight: bold;
   margin-bottom: 6px;
-  font-size: 16px;
-}
-
-.fieldlabelcurrentCharge {
-  display: block;
-  margin-top: 6px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 6px;
-  font-size: 24px;
+  font-size: 14px;
 }
 
 .field-row {
@@ -211,70 +189,56 @@ body.app-body {
 
 .field-input {
   flex: 1;
-  padding: 8px 10px;
-  font-size: 18px;
+  padding: 10px;
+  font-size: 20px;
   border-radius: 8px;
   border: 1px solid #444;
   background: #ffffff;
   color: #000000;
 }
-
 .field-input.right { text-align: right; }
 
 
 /* ================================
-   5. カウンター（最新版）
+   5. カウンターエリア
 ================================ */
-
-/* カウンターが入っているカード全体の設定 */
 .counter-card {
   display: flex;
-  flex-direction: column; /* 強制的に中身を縦並びにする */
+  flex-direction: column;
+  padding: 10px 16px; /* 少しパディングを持たせる */
 }
 
-/* カウンターの各行 */
 .counter-row {
-  width: 100%;                    /* 横幅いっぱいにして縦積みを維持 */
-  display: flex;                  /* 内部は横並び */
-  justify-content: space-between; /* ラベル左、ボタン右 */
-  align-items: center;            /* 上下中央揃え */
-  padding: 15px 5px;              /* 指で押しやすい余白 */
-  border-bottom: 1px solid #eee;  /* 区切り線 */
-  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
 }
+.counter-row:last-child { border-bottom: none; }
 
-/* 最後の行の下線を消す */
-.counter-row:last-child {
-  border-bottom: none;
-}
-
-/* カウンターのラベル */
 .counter-label {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
-  white-space: nowrap;            /* 文字の折り返し禁止 */
-  flex-shrink: 0;
-  margin-right: 10px;
+  white-space: nowrap;
 }
 
-/* ボタンと数字のセット */
 .counter-controls {
   display: flex;
   align-items: center;
-  gap: 15px;                      /* ボタンと数字の間隔 */
+  gap: 15px;
 }
 
-/* 数字部分 */
 .counter-value {
   font-size: 22px;
   font-weight: bold;
-  width: 40px;                    /* 幅固定でガタつき防止 */
+  width: 40px;
   text-align: center;
 }
 
-
 /* ================================
-   6. ボタン（共通・個別）
+   6. ボタン
 ================================ */
 .btn {
   border: none;
@@ -282,51 +246,22 @@ body.app-body {
   padding: 10px 16px;
   font-size: 16px;
   cursor: pointer;
-}
-
-.btn.primary {
-  width: 100%;
-  background: #686868;
-  color: #f0f0f0;
-}
-
-.btn.secondary {
-  background: #7c6262;
-  color: #ffffff;
-}
-
-.btn.female {
-  background: #a66766;
-  color: #fff;
-}
-
-.btn.back {
-  background: transparent;
-  color: #000000;
-  padding: 4px 8px;
-}
-
-.btn.full { width: 100%; }
-
-/* カウンター用の丸いボタン（最新のデザインを適用） */
-.btn.small {
-  width: 44px;                    /* 指で確実に押せるサイズ */
-  height: 44px;
-  border-radius: 50%;             /* 真ん丸にする */
-  font-size: 24px;
-  padding: 0;
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
-  background-color: #f0f0f0;
-  border: none;
-  touch-action: manipulation;     /* 連打対応 */
-  line-height: 1;
 }
 
-.btn.small:active {
-  background-color: #d0d0d0;      /* タップ時の色変化 */
-}
+.btn.primary { width: 100%; background: #686868; color: #f0f0f0; height: 50px; font-size: 18px; font-weight: bold; }
+.btn.secondary { background: #7c6262; color: #ffffff; }
+.btn.female { background: #a66766; color: #fff; }
+.btn.back { background: transparent; color: #000000; padding: 4px 8px; }
+.btn.full { width: 100%; }
 
-/* 汎用スペーサー */
+.btn.small {
+  width: 44px; height: 44px; border-radius: 50%;
+  font-size: 24px; padding: 0; background-color: #f0f0f0;
+  color: #000;
+}
+.btn.small:active { background-color: #d0d0d0; }
+
 .spacer { height: 16px; }
