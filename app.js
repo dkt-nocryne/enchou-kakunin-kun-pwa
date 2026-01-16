@@ -274,9 +274,15 @@ function fitTextToWidth(el) {
   const text = el.textContent;
   
   // DOM再構築（リセットも兼ねる）
-  el.innerHTML = `<span style="display:inline-block; white-space:nowrap; transform-origin:center;">${text}</span>`;
-  
-  const span = el.firstElementChild;
+  const span = document.createElement('span');
+  span.style.display = 'inline-block';
+  span.style.whiteSpace = 'nowrap';
+  span.style.transformOrigin = 'center';
+  span.textContent = text ?? '';
+
+  el.textContent = '';
+  el.appendChild(span);
+
   const parentWidth = el.clientWidth;
   const childWidth = span.scrollWidth;
 

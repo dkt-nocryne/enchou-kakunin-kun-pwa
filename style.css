@@ -107,6 +107,7 @@ body.app-body {
   /* ★修正: 「画面全体の高さ(100vh)」から「ヘッダーと余白(約100px)」を引いた高さにする */
   /* これで、ちょうど画面の下端までカードが広がります */
   height: calc(100vh - 100px);
+  height: calc(100dvh - 100px);
   
   min-height: 300px;
   margin-bottom: 20px;
