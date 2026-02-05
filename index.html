@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <title>延長確認</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#000000">
   <link rel="stylesheet" href="style.css">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    }
   </style>
 </head>
 
@@ -29,14 +32,14 @@
     <main class="app-main scroll">
 
       <div class="display-wrapper">
-        
+
         <div class="card price-card">
           <div class="card-label">現在の料金</div>
           <div id="currentChargeDisplay" class="card-amount">¥0</div>
         </div>
 
         <div id="extensionCards"></div>
-        
+
       </div>
 
       <div class="spacer"></div>
@@ -50,7 +53,7 @@
       </div>
 
       <div class="card counter-card">
-        
+
         <div id="rowMaleCustomer" class="counter-row">
           <div class="counter-label"><span id="labelMaleCustomer">お客様（男性）</span></div>
           <div class="counter-controls">
@@ -105,4 +108,5 @@
     });
   </script>
 </body>
+
 </html>
