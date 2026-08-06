@@ -35,7 +35,7 @@ const DEFAULT_SETTINGS = {
   labelFemaleCustomer: 'お客様（女性）',
 
   // カード手数料（%）
-  cardFeePercent: 0
+  cardFeePercent: 10
 };
 
 // ================================
