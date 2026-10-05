@@ -335,3 +335,17 @@ body.luxury-body {
   .luxury-body .display-wrapper .extension-card { padding-left: 16px !important; padding-right: 16px !important; gap: 12px; }
 }
 
+
+/* 表示中の画面の高さを使い、入力欄を料金表示の次に配置する。 */
+.luxury-body .app-container {
+  height: 100vh;
+  height: 100dvh;
+}
+.luxury-body .app-header { flex-shrink: 0; }
+.luxury-body .app-main { min-height: 0; }
+.luxury-body .display-wrapper { min-height: 100%; }
+.luxury-body #extensionCards { flex: 1; }
+.luxury-body .display-wrapper .extension-card {
+  flex: 1;
+  min-height: 100px;
+}
