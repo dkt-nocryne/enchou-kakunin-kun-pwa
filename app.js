@@ -533,21 +533,90 @@ function initSettingsEditorScreen() {
 }
 
 // ================================
-// Service Worker 登録（維持）
+// Service Worker 登録・更新通知（両HTMLで共通）
 // ================================
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').then(reg => {
-    if (reg.waiting) {
-      reg.waiting.postMessage('skipWaiting');
+(() => {
+  if (!('serviceWorker' in navigator)) return;
+  let registration;
+  let reloading = false;
+  let previousController = navigator.serviceWorker.controller;
+  let notice;
+
+  // 登録より先に購読し、初回claimでは再読み込みしない。
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    const current = navigator.serviceWorker.controller;
+    if (previousController && current !== previousController && !reloading) {
+      reloading = true;
+      location.reload();
     }
-    reg.addEventListener('updatefound', () => {
-      const newSW = reg.installing;
-      newSW.addEventListener('statechange', () => {
-        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-          newSW.postMessage('skipWaiting');
-          location.reload();
-        }
-      });
-    });
+    previousController = current;
   });
-}
+
+  function showUpdate() {
+    if (!registration?.waiting || notice) return;
+    notice = document.createElement('div');
+    notice.setAttribute('role', 'status');
+    Object.assign(notice.style, {
+      position: 'fixed', bottom: '16px', left: '16px', right: '16px',
+      zIndex: '10000', padding: '16px', borderRadius: '12px',
+      background: '#fff', color: '#111', boxShadow: '0 2px 16px #0006'
+    });
+    const text = document.createElement('p');
+    text.textContent = '新しいバージョンがあります。更新すると画面を再読み込みします。';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = '更新する';
+    button.addEventListener('click', () => {
+      const waiting = registration.waiting;
+      if (!waiting) { notice.remove(); notice = null; return; }
+      button.disabled = true;
+      button.textContent = '更新中…';
+      waiting.postMessage({ type: 'SKIP_WAITING' });
+      // 切り替え失敗・遅延時も再操作できる。
+      setTimeout(() => {
+        if (!reloading) {
+          button.disabled = false;
+          button.textContent = '更新する';
+        }
+      }, 10000);
+    });
+    notice.append(text, button);
+    document.body.append(notice);
+  }
+
+  function watch(worker) {
+    if (!worker) return;
+    const changed = () => {
+      if (worker.state === 'installed') showUpdate();
+      if (worker.state === 'redundant') {
+        console.warn('アプリの更新を取得できませんでした。次回オンライン時に再試行します。');
+      }
+    };
+    worker.addEventListener('statechange', changed);
+    changed();
+  }
+
+  let lastCheck = 0;
+  async function checkUpdate() {
+    if (!registration || !navigator.onLine || document.hidden) return;
+    if (Date.now() - lastCheck < 60000) return;
+    lastCheck = Date.now();
+    try { await registration.update(); showUpdate(); }
+    catch (error) { console.warn('更新確認を次回再試行します。', error); }
+  }
+
+  navigator.serviceWorker.register('./service-worker.js', {
+    scope: './', updateViaCache: 'none'
+  }).then(reg => {
+    registration = reg;
+    reg.addEventListener('updatefound', () => watch(reg.installing));
+    watch(reg.installing);
+    showUpdate();
+    checkUpdate();
+    window.addEventListener('online', checkUpdate);
+    window.addEventListener('pageshow', checkUpdate);
+    document.addEventListener('visibilitychange', checkUpdate);
+    setInterval(checkUpdate, 5 * 60 * 1000);
+  }).catch(error => console.warn('Service Workerの登録に失敗しました。', error));
+})();
+
