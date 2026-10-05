@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="延長確認">
-  <link rel="stylesheet" href="style.css?v=v21">
+  <link rel="stylesheet" href="style.css?v=v22">
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
@@ -50,9 +50,9 @@
 
       <div class="card">
         <label class="field-label" for="currentChargeInput">現在の料金</label>
-        <div class="field-row">
+        <div class="field-row field-row--stacked">
           <input id="currentChargeInput" type="number" inputmode="numeric" class="field-input right">
-          <button id="currentChargeReset" class="btn secondary" type="button">リセット</button>
+          <button id="currentChargeReset" class="btn secondary full" type="button">リセット</button>
         </div>
       </div>
 
@@ -103,7 +103,7 @@
     </main>
   </div>
 
-  <script src="app.js?v=v21"></script>
+  <script src="app.js?v=v22"></script>
   <script>
     document.addEventListener('DOMContentLoaded', initApp);
 
