@@ -199,6 +199,18 @@ body.app-body {
 }
 .field-input.right { text-align: right; }
 
+/* 現在の料金は入力欄とリセットボタンを縦に並べる */
+.field-row--stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.field-row--stacked > .field-input {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+}
+
 
 /* ================================
    5. カウンターエリア
