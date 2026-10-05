@@ -268,14 +268,11 @@ function createExtensionCard(duration, amount) {
 // ================================
 function fitTextToWidth(el) {
   if (!el) return;
-
   const text = el.textContent;
-  
-  // DOM再構築（リセットも兼ねる）
+  const card = el.closest('.extension-card');
   const span = document.createElement('span');
   span.style.display = 'inline-block';
   span.style.whiteSpace = 'nowrap';
-  span.style.transformOrigin = el.closest('.extension-card') ? 'right center' : 'center';
   span.style.flexShrink = '0';
   const yen = document.createElement('span');
   yen.className = 'amount-yen';
@@ -284,33 +281,50 @@ function fitTextToWidth(el) {
   digits.className = 'amount-digits';
   digits.textContent = (text ?? '').replace(/^¥/, '');
   span.append(yen, digits);
-
-  el.textContent = '';
-  el.appendChild(span);
-
-  const parentWidth = el.clientWidth;
-  const childWidth = span.scrollWidth;
-
-  if (childWidth > parentWidth) {
-    const scale = parentWidth / childWidth;
-    // マージン考慮で少し小さめに(0.95倍)
-    span.style.transform = `scale(${scale * 0.95})`;
+  el.replaceChildren(span);
+  // 前回の縮小をリセットして、カードの高さと幅から毎回計算する。
+  el.style.fontSize = '';
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  if (card) {
+    const current = safeGetEl('currentChargeDisplay');
+    const reference = current ? parseFloat(getComputedStyle(current).fontSize) : size;
+    const count = document.querySelectorAll('.extension-card').length;
+    const multiplier = count === 1 ? 1.3 : count === 2 ? 1.15 : 1;
+    const style = getComputedStyle(card);
+    const availableHeight = card.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    size = Math.min(reference * multiplier, availableHeight / 1.15);
+  }
+  el.style.fontSize = size + 'px';
+  // 桁数が多い場合は横幅に合わせる。縮小後も右端で切れない。
+  if (span.scrollWidth > el.clientWidth) {
+    size *= el.clientWidth / span.scrollWidth * 0.97;
+    el.style.fontSize = size + 'px';
   }
 }
 
 function fitAllAmounts() {
-  // 現在の料金
   fitTextToWidth(safeGetEl('currentChargeDisplay'));
-  // 延長カード
-  document.querySelectorAll('.extension-card .card-amount').forEach(el => {
-    fitTextToWidth(el);
-  });
+  document.querySelectorAll('.extension-card .card-amount').forEach(fitTextToWidth);
+}
+
+let amountResizeObserver;
+let amountResizeFrame;
+function scheduleAmountResize() {
+  cancelAnimationFrame(amountResizeFrame);
+  amountResizeFrame = requestAnimationFrame(fitAllAmounts);
+}
+function observeAmountLayout() {
+  const main = document.querySelector('.luxury-body .app-main');
+  if (!main || amountResizeObserver || !('ResizeObserver' in window)) return;
+  amountResizeObserver = new ResizeObserver(scheduleAmountResize);
+  amountResizeObserver.observe(main);
 }
 
 // ================================
 // 1画面：初期化（index.html）
 // ================================
 function initApp() {
+  observeAmountLayout();
   initInputBindings();
   updateCalculator();
 }
@@ -629,4 +643,4 @@ function initSettingsEditorScreen() {
 
 
 // 画面幅の変化でも大きな金額をカード内に収める。
-window.addEventListener('resize', () => requestAnimationFrame(fitAllAmounts));
+window.addEventListener('resize', scheduleAmountResize);

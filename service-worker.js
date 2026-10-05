@@ -1,5 +1,5 @@
 // リリースごとに必ず変更。同じ版名の再利用は禁止。
-const RELEASE = 'v24';
+const RELEASE = 'v25';
 const PREFIX = 'bix-extension-app-';
 const CACHE_NAME = PREFIX + RELEASE;
 const BASE = new URL('./', self.location.href);
