@@ -264,7 +264,7 @@ function createExtensionCard(duration, amount) {
 }
 
 // ================================
-// 文字サイズ自動調整（Scale Transform方式）
+// 文字サイズ自動調整（現在会計を上限に高さ・幅へ合わせる）
 // ================================
 function fitTextToWidth(el) {
   if (!el) return;
@@ -288,11 +288,9 @@ function fitTextToWidth(el) {
   if (card) {
     const current = safeGetEl('currentChargeDisplay');
     const reference = current ? parseFloat(getComputedStyle(current).fontSize) : size;
-    const count = document.querySelectorAll('.extension-card').length;
-    const multiplier = count === 1 ? 1.3 : count === 2 ? 1.15 : 1;
     const style = getComputedStyle(card);
     const availableHeight = card.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-    size = Math.min(reference * multiplier, availableHeight / 1.15);
+    size = Math.min(reference, availableHeight / 1.15);
   }
   el.style.fontSize = size + 'px';
   // 桁数が多い場合は横幅に合わせる。縮小後も右端で切れない。
