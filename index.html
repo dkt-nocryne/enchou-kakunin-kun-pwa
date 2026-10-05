@@ -6,24 +6,18 @@
   <title>延長確認</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#161713">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="延長確認">
-  <link rel="stylesheet" href="style.css?v=v22">
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css?v=v23">
 </head>
 
-<body class="app-body">
+<body class="app-body luxury-body">
   <div class="app-container">
     <header class="app-header app-header--with-toggle">
-      <div class="header-spacer"></div>
-      <h1 class="app-title">延長確認</h1>
+      <div class="app-brand"><span class="brand-mark" aria-hidden="true">E</span><h1 class="app-title">延長確認</h1></div>
       <div class="header-toggle">
         <span class="toggle-text">カード</span>
         <label class="switch" aria-label="カード手数料">
@@ -36,13 +30,17 @@
     <main class="app-main scroll">
 
       <div class="display-wrapper">
+        <div class="luxury-caption">EXTENSION · COLLECTION</div>
 
         <div class="card price-card">
           <div class="card-label">現在の料金</div>
           <div id="currentChargeDisplay" class="card-amount">¥0</div>
+          <div class="summary-foot"><span></span>現在のお会計<span></span></div>
         </div>
 
+        <div class="extension-heading">延長後のお会計</div>
         <div id="extensionCards"></div>
+        <div class="pricing-footer"><span id="cardFeeNote">カード手数料なし</span><span>延長確認</span></div>
 
       </div>
 
@@ -103,7 +101,7 @@
     </main>
   </div>
 
-  <script src="app.js?v=v22"></script>
+  <script src="app.js?v=v23"></script>
   <script>
     document.addEventListener('DOMContentLoaded', initApp);
 

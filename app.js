@@ -244,24 +244,22 @@ function applyUiLabels(settings) {
 // ================================
 // 延長カード生成
 // ================================
-function createExtensionCard(label, amount, emphasized) {
+function createExtensionCard(duration, amount) {
   const card = document.createElement('div');
   card.className = 'card extension-card';
-
   const labelDiv = document.createElement('div');
-  labelDiv.className = 'card-label';
-  labelDiv.textContent = label;
-
+  labelDiv.className = 'card-label extension-duration';
+  const number = document.createElement('span');
+  number.className = 'duration-number';
+  number.textContent = String(duration);
+  const unit = document.createElement('span');
+  unit.className = 'duration-unit';
+  unit.textContent = '分延長';
+  labelDiv.append(number, unit);
   const amountDiv = document.createElement('div');
   amountDiv.className = 'card-amount';
   amountDiv.textContent = formatYen(amount);
-
-  if (emphasized) {
-    card.style.background = '#9fb5cfff';
-  }
-
-  card.appendChild(labelDiv);
-  card.appendChild(amountDiv);
+  card.append(labelDiv, amountDiv);
   return card;
 }
 
@@ -277,8 +275,15 @@ function fitTextToWidth(el) {
   const span = document.createElement('span');
   span.style.display = 'inline-block';
   span.style.whiteSpace = 'nowrap';
-  span.style.transformOrigin = 'center';
-  span.textContent = text ?? '';
+  span.style.transformOrigin = el.closest('.extension-card') ? 'right center' : 'center';
+  span.style.flexShrink = '0';
+  const yen = document.createElement('span');
+  yen.className = 'amount-yen';
+  yen.textContent = '¥';
+  const digits = document.createElement('span');
+  digits.className = 'amount-digits';
+  digits.textContent = (text ?? '').replace(/^¥/, '');
+  span.append(yen, digits);
 
   el.textContent = '';
   el.appendChild(span);
@@ -322,6 +327,8 @@ function updateCalculator() {
 
   const feeOn = !!state.cardFeeEnabled;
   const feePercent = settings.cardFeePercent;
+  const feeNote = safeGetEl('cardFeeNote');
+  if (feeNote) feeNote.textContent = feeOn ? `カード手数料 ${feePercent}% 適用` : 'カード手数料なし';
 
   // 現在の料金表示
   const currentChargeDisplay = safeGetEl('currentChargeDisplay');
@@ -344,13 +351,13 @@ function updateCalculator() {
   const t3 = feeOn ? applyCardFee(totals.total3, feePercent) : totals.total3;
 
   if (settings.cardCount >= 1) {
-    container.appendChild(createExtensionCard(`${settings.duration1}分延長 合計`, t1, true));
+    container.appendChild(createExtensionCard(settings.duration1, t1));
   }
   if (settings.cardCount >= 2) {
-    container.appendChild(createExtensionCard(`${settings.duration2}分延長 合計`, t2, true));
+    container.appendChild(createExtensionCard(settings.duration2, t2));
   }
   if (settings.cardCount >= 3) {
-    container.appendChild(createExtensionCard(`${settings.duration3}分延長 合計`, t3, true));
+    container.appendChild(createExtensionCard(settings.duration3, t3));
   }
 
   // ★修正: Flexboxで高さを自動調整するため、旧パディング計算(applyCardPaddingByCount)は不要になりました。
@@ -620,3 +627,6 @@ function initSettingsEditorScreen() {
   }).catch(error => console.warn('Service Workerの登録に失敗しました。', error));
 })();
 
+
+// 画面幅の変化でも大きな金額をカード内に収める。
+window.addEventListener('resize', () => requestAnimationFrame(fitAllAmounts));
