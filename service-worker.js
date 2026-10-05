@@ -1,111 +1,61 @@
-// service-worker.js
-
-const CACHE_NAME = 'bix-extension-app-v20';
-const URLS_TO_CACHE = [
-  './',
-  './index.html',
-  './settings.html',
-  './style.css',
-  './app.js',
-  './manifest.json',
-  // アイコンファイルが実際に存在することを確認してください
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './fonts/lineseedjp_a_ttf_bd.ttf',
+// リリースごとに必ず変更。同じ版名の再利用は禁止。
+const RELEASE = 'v21';
+const PREFIX = 'bix-extension-app-';
+const CACHE_NAME = PREFIX + RELEASE;
+const BASE = new URL('./', self.location.href);
+const FILES = [
+  'index.html', 'settings.html', 'style.css', 'app.js', 'manifest.json',
+  'icons/icon-192.png', 'icons/icon-512.png', 'fonts/lineseedjp_a_ttf_bd.ttf'
 ];
+const URLS = FILES.map(file => new URL(file, BASE).href);
 
-/* ===== Install: キャッシュへのファイル格納 ===== */
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      // 失敗してもインストールを止めないよう、個別にcatchすることも検討できますが、
-      // 基本的にはこれでOKです。
-      return cache.addAll(URLS_TO_CACHE);
-    })
-  );
-  // インストール後、待機中のSWを即座にアクティブにする
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // HTTPキャッシュを避け、全必須ファイルが取得できた場合だけインストール成功。
+    await cache.addAll(URLS.map(url => new Request(url, { cache: 'reload' })));
+    // 自動skipWaitingは行わない。更新ボタンまたは旧app.jsのメッセージを待つ。
+  })());
 });
 
-/* ===== Activate: 古いキャッシュの削除 ===== */
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      )
-    )
-  );
-  // 即座にページをコントロールする
-  return self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key =>
+      key.startsWith(PREFIX) && key !== CACHE_NAME
+    ).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
-/* ===== Fetch: 通信の制御 ===== */
-self.addEventListener('fetch', event => {
-  // 安全のため GET 以外はスルー
-  if (event.request.method !== 'GET') return;
+self.addEventListener('message', event => {
+  // v20のapp.jsとの移行互換性も維持。
+  if (event.data === 'skipWaiting' || event.data?.type === 'SKIP_WAITING') {
+    event.waitUntil(self.skipWaiting());
+  }
+});
 
+self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== BASE.origin ||
+      !url.pathname.startsWith(BASE.pathname)) return;
 
-  // 1. HTMLページ（ナビゲーション）の場合
-  // 戦略: Network First (ネット優先 -> ダメならキャッシュ)
-  // 理由: 料金設定などのロジック変更をすぐに反映させるため
-  if (req.mode === 'navigate' || url.pathname.endsWith('.html')) {
-    event.respondWith(
-      fetch(req)
-        .then(async res => {
-          // 正常なレスポンスのみキャッシュする
-          if (res.ok) {
-            const copy = res.clone();
-            const cache = await caches.open(CACHE_NAME);
-            // ★修正: 固定の './index.html' ではなく、リクエストされたURLに対して保存する
-            cache.put(req, copy);
-          }
-          return res;
-        })
-        .catch(() => {
-          // オフライン時はキャッシュから探す
-          return caches.match(req).then(cached => {
-            // キャッシュもなければ、index.html を返す（SPA的なフォールバックが必要な場合）
-            // 今回は settings.html もあるので、単純にキャッシュを返すだけに留めるのが安全
-            return cached;
-          });
-        })
-    );
-    return;
-  }
+  // このアプリの既知ファイルのみ処理。HTML/JS/CSSを同一版で固定する。
+  const canonical = new URL(url.href);
+  canonical.search = '';
+  canonical.hash = '';
+  if (canonical.href === BASE.href) canonical.pathname += 'index.html';
+  if (!URLS.includes(canonical.href)) return;
 
-  // 2. CSS, JS, 画像などの静的リソース
-  // 戦略: Stale-While-Revalidate (キャッシュ優先 -> 裏で更新)
-  // 理由: 画面表示を爆速にするため
-  event.respondWith(
-    caches.match(req).then(cached => {
-      // ネットワークへのリクエスト（裏側で実行）
-      const fetchPromise = fetch(req).then(async res => {
-        if (res.ok) {
-          const copy = res.clone();
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(req, copy);
-        }
-        return res;
-      }).catch(() => {
-        // ネットワークエラーは何もしない（キャッシュが生きる）
-      });
-
-      // キャッシュがあればそれを即座に返す。なければネットワークの結果を待つ
-      return cached || fetchPromise;
-    })
-  );
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(canonical.href);
+    if (cached) return cached;
+    // キャッシュの欠損を別リリースのファイルで埋めない。
+    return new Response('アプリの保存データが不足しています。オンラインで更新してください。', {
+      status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    });
+  })());
 });
 
-// app.js からの更新通知用
-self.addEventListener('message', event => {
-  if (event.data === 'skipWaiting') {
-    self.skipWaiting();
-  }
-});
