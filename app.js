@@ -3,6 +3,7 @@
 // ================================
 const DEFAULT_SETTINGS = {
   cardCount: 2,
+  displayCaption: 'EXTENSION · COLLECTION',
 
   duration1: 30,
   duration2: 60,
@@ -212,6 +213,13 @@ function loadState() {
 // UI：ラベル反映（index.html / settings.html 共通）
 // ================================
 function applyUiLabels(settings) {
+  const caption = safeGetEl('displayCaption');
+  if (caption) {
+    const text = String(settings.displayCaption ?? DEFAULT_SETTINGS.displayCaption).trim();
+    caption.textContent = text;
+    caption.hidden = text === '';
+  }
+
   // ラベルの文字をセットしつつ、空なら行ごと隠す関数
   const updateLabelAndVisibility = (labelId, rowId, text) => {
     const el = safeGetEl(labelId);
@@ -481,6 +489,14 @@ function bindText(id, onChange) {
 
 function initSettingsEditorScreen() {
   const settings = loadSettings();
+
+  // メイン画面上部の表示テキスト（空欄で非表示）。
+  setVal('displayCaptionInput', settings.displayCaption);
+  bindText('displayCaptionInput', value => {
+    const s = loadSettings();
+    s.displayCaption = String(value ?? '').trim();
+    saveSettings(s);
+  });
 
   // cardCount
   setVal('cardCount', settings.cardCount);

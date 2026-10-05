@@ -3,25 +3,32 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>料金設定</title>
+  <title>詳細設定</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#161713">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="延長確認">
-  <link rel="stylesheet" href="style.css?v=v26">
+  <link rel="stylesheet" href="style.css?v=v27">
 </head>
 
-<body class="app-body">
+<body class="app-body luxury-body settings-body">
   <div class="app-container">
-    <header class="app-header">
+    <header class="app-header settings-header">
       <button class="btn back" type="button" onclick="location.href='index.html'">← 戻る</button>
-      <h1>料金設定</h1>
+      <h1 class="app-title">詳細設定</h1>
     </header>
 
     <main class="app-main scroll">
+
+      <p class="settings-note">変更は自動保存されます。</p>
+      <div class="card">
+        <label class="field-label" for="displayCaptionInput">上部の表示テキスト</label>
+        <input id="displayCaptionInput" type="text" class="field-input" placeholder="EXTENSION · COLLECTION">
+        <p class="field-help">計算画面の上部に表示します。空欄で非表示にできます。</p>
+      </div>
 
       <div class="card">
         <label class="field-label" for="cardCount">延長パターン数（1〜3）</label>
@@ -125,7 +132,7 @@
     </main>
   </div>
 
-  <script src="app.js?v=v26"></script>
+  <script src="app.js?v=v27"></script>
   <script>
     document.addEventListener('DOMContentLoaded', initSettingsEditorScreen);
   </script>
